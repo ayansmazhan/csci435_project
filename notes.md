@@ -16,3 +16,7 @@ CSCI 435 Research track, Scoping Note, "Natural-language to smart contract with 
 spec01 / qwen2.5-coder:7b / seed1: SAFE (balance updated before transfer).
 Correct per tests (5/5). Deviations: extra require(amount > 0) in withdraw
 (not in spec, not tested); public `balances` getter; no SPDX line; uses transfer. 
+spec01 / qwen3.5:4b / seed1: correct (5/5). Slither HIGH reentrancy-eth.
+Manual: call before balance update (unsafe pattern). Attack test: NOT exploitable,
+because the 0.8 underflow check reverts the reentrant withdrawal. A version
+with `balances = 0` instead of `-=` WOULD be drained.

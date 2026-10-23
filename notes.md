@@ -13,4 +13,6 @@ CSCI 435 Research track, Scoping Note, "Natural-language to smart contract with 
 -Main fiugre: a bar chart of the compile/ test-pass/ Slither-clean rates for each model, with and without repair.
 -A table of failure types with counts.
 -A manual review of code after the pipeline.
- 
+spec01 / qwen2.5-coder:7b / seed1: SAFE (balance updated before transfer).
+Correct per tests (5/5). Deviations: extra require(amount > 0) in withdraw
+(not in spec, not tested); public `balances` getter; no SPDX line; uses transfer. 

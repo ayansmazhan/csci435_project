@@ -4,3 +4,4 @@ timestamp,spec,model,seed,temperature,round,gen_seconds,compiles,compile_error,t
 2026-11-18T12:52:16,03_escrow,reference,,,0.0,True,,True,15,15,True,0,0,0,2,low-level-calls,reference/Escrow.sol
 2026-11-18T12:54:35,04_voting,reference,,,0.0,True,,True,14,14,True,0,0,0,0,cache-array-length,reference/Voting.sol
 2026-11-18T12:58:16,05_auction,reference,,,0.0,True,,True,16,16,True,0,0,2,2,low-level-calls;timestamp,reference/Auction.sol
+2026-11-18T13:00:07,06_crowdfunding,reference,,,0.0,True,,True,16,16,True,0,0,3,2,low-level-calls;timestamp,reference/Crowdfunding.sol

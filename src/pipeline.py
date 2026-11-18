@@ -23,6 +23,7 @@ SPECS = {
     "02_token": "SimpleToken",
     "03_escrow": "Escrow",
     "04_voting": "Voting",
+    "05_auction": "Auction",
 }                  # spec id -> contract name
 OLLAMA_URL = "http://localhost:11434/api/generate"
 TEMPERATURE = 0.7

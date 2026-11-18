@@ -1,3 +1,4 @@
 timestamp,spec,model,seed,temperature,round,gen_seconds,compiles,compile_error,tests_built,tests_passed,tests_total,all_tests_pass,slither_high,slither_medium,slither_low,slither_info,slither_detectors,file
 2026-11-18T12:37:22,01_piggybank,qwen3.5:4b,2,0.7,0,55.6,True,,True,5,5,True,0,0,0,1,reentrancy-unlimited-gas,data/generated/qwen3.5_4b/01_piggybank/seed2.sol
 2026-11-18T12:47:56,02_token,reference,,,0.0,True,,True,12,12,True,0,0,0,0,immutable-states,reference/SimpleToken.sol
+2026-11-18T12:52:16,03_escrow,reference,,,0.0,True,,True,15,15,True,0,0,0,2,low-level-calls,reference/Escrow.sol

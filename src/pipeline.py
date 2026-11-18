@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent          # the repo folder
 SPECS = {
     "01_piggybank": "PiggyBank",
     "02_token": "SimpleToken",
+    "03_escrow": "Escrow",
 }                  # spec id -> contract name
 OLLAMA_URL = "http://localhost:11434/api/generate"
 TEMPERATURE = 0.7

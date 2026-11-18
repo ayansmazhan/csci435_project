@@ -21,7 +21,7 @@ ROOT = Path(__file__).resolve().parent.parent          # the repo folder
 SPECS = {"01_piggybank": "PiggyBank"}                  # spec id -> contract name
 OLLAMA_URL = "http://localhost:11434/api/generate"
 TEMPERATURE = 0.7
-RESULTS_CSV = ROOT / "data" / "results.csv"
+PILOT_CSV = ROOT / "data" / "pilot_results.csv"   # single runs from this script
 
 PROMPT_TEMPLATE = """You are a Solidity developer. Implement the following specification.
 
@@ -31,11 +31,11 @@ Return only the complete Solidity source code in a single ```solidity code block
 
 
 # ---------- step 1: ask the model ----------
-def generate(spec_text, model, seed):
-    """Send the spec to Ollama. Returns (full answer text, seconds taken)."""
+def generate(prompt, model, seed):
+    """Send a prompt to Ollama. Returns (full answer text, seconds taken)."""
     body = {
         "model": model,
-        "prompt": PROMPT_TEMPLATE.format(spec=spec_text),
+        "prompt": prompt,
         "stream": False,
         "keep_alive": "30m",
         "options": {"temperature": TEMPERATURE, "seed": seed, "num_ctx": 4096},
@@ -61,6 +61,12 @@ def compile_check(sol_file):
     p = subprocess.run(["solc", str(sol_file)], capture_output=True, text=True)
     errors = [line for line in p.stderr.splitlines() if "Error" in line]
     return p.returncode == 0, (errors[0] if errors else "")
+
+
+def compiler_output(sol_file):
+    """The full error text from solc (used to build the repair prompt)."""
+    p = subprocess.run(["solc", str(sol_file)], capture_output=True, text=True)
+    return p.stderr.strip()
 
 
 # ---------- step 4: does it pass the tests? ----------
@@ -127,11 +133,11 @@ def evaluate(sol_file, name):
     }
 
 
-def save_row(row):
-    """Append one result row to data/results.csv (writes the header the first time)."""
-    RESULTS_CSV.parent.mkdir(parents=True, exist_ok=True)
-    new_file = not RESULTS_CSV.exists()
-    with open(RESULTS_CSV, "a", newline="") as f:
+def save_row(row, csv_path=PILOT_CSV):
+    """Append one result row to a CSV file (writes the header the first time)."""
+    csv_path.parent.mkdir(parents=True, exist_ok=True)
+    new_file = not csv_path.exists()
+    with open(csv_path, "a", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=list(row))
         if new_file:
             writer.writeheader()
@@ -156,7 +162,7 @@ def main():
             ap.error("--model is required unless --reference is used")
         spec_text = (ROOT / "specs" / f"{args.spec}.md").read_text()
         print(f"Generating with {args.model} (seed {args.seed})... this can take a few minutes", flush=True)
-        response, seconds = generate(spec_text, args.model, args.seed)
+        response, seconds = generate(PROMPT_TEMPLATE.format(spec=spec_text), args.model, args.seed)
         out_dir = ROOT / "data" / "generated" / args.model.replace(":", "_") / args.spec
         out_dir.mkdir(parents=True, exist_ok=True)
         (out_dir / f"seed{args.seed}_raw.txt").write_text(response)   # keep the full answer

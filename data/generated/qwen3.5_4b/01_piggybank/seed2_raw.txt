@@ -1,0 +1,46 @@
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract PiggyBank {
+    mapping(address => uint256) public balances;
+
+    event Deposit(address indexed user, uint256 amount);
+    event Withdraw(address indexed user, uint256 amount);
+
+    constructor() {}
+
+    function deposit() external payable {
+        require(msg.value > 0, "Deposit requires positive ETH");
+        
+        // Check if the sender is already a registered user (optional constraint for spec clarity)
+        // If not, initialize balance to 0 before adding
+        if (balances[msg.sender] == 0) {
+            balances[msg.sender] = msg.value;
+        } else {
+            balances[msg.sender] += msg.value;
+        }
+
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 amount) external {
+        require(amount > 0, "Withdrawal requires positive amount");
+        
+        // Ensure the caller has sufficient balance
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+
+        // Transfer ETH to the caller
+        payable(msg.sender).transfer(amount);
+
+        // Deduct from balance
+        balances[msg.sender] -= amount;
+
+        emit Withdraw(msg.sender, amount);
+    }
+
+    function balanceOf(address user) external view returns (uint256) {
+        return balances[user];
+    }
+}
+```

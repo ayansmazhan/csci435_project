@@ -18,7 +18,10 @@ from pathlib import Path
 import requests
 
 ROOT = Path(__file__).resolve().parent.parent          # the repo folder
-SPECS = {"01_piggybank": "PiggyBank"}                  # spec id -> contract name
+SPECS = {
+    "01_piggybank": "PiggyBank",
+    "02_token": "SimpleToken",
+}                  # spec id -> contract name
 OLLAMA_URL = "http://localhost:11434/api/generate"
 TEMPERATURE = 0.7
 PILOT_CSV = ROOT / "data" / "pilot_results.csv"   # single runs from this script

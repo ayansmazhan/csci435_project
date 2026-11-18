@@ -26,6 +26,7 @@ SPECS = {
     "05_auction": "Auction",
     "06_crowdfunding": "Crowdfunding",
     "07_timelock": "TimeLock",
+    "08_multisig": "MultiSig",
 }                  # spec id -> contract name
 OLLAMA_URL = "http://localhost:11434/api/generate"
 TEMPERATURE = 0.7

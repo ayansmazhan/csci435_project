@@ -1,0 +1,60 @@
+pragma solidity ^0.8.24;
+
+contract SimpleToken {
+    // State variables
+    address public owner;
+    uint256 public totalSupply;
+    mapping(address => uint256) public balances;
+    mapping(address => mapping(address => uint256)) public allowances;
+
+    // Constructor
+    constructor(uint256 initialSupply) {
+        owner = msg.sender;
+        totalSupply = initialSupply;
+        balances[msg.sender] = initialSupply;
+    }
+
+    // View functions
+    function totalSupply() external view returns (uint256) {
+        return totalSupply;
+    }
+
+    function balanceOf(address account) external view returns (uint256) {
+        return balances[account];
+    }
+
+    // Transfer function
+    function transfer(address to, uint256 amount) external returns (bool) {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        require(to != address(0), "Recipient cannot be zero address");
+
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    // Approve function
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowances[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    // TransferFrom function
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        require(allowances[from][msg.sender] >= amount, "Insufficient allowance");
+        require(balances[from] >= amount, "Insufficient balance");
+        require(to != address(0), "Recipient cannot be zero address");
+
+        balances[from] -= amount;
+        balances[to] += amount;
+        allowances[from][msg.sender] -= amount;
+        emit Transfer(from, to, amount);
+        return true;
+    }
+
+    // Events
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}

@@ -1,0 +1,77 @@
+pragma solidity ^0.8.24;
+
+contract MultiSig {
+    // State variables
+    address[] public owners;
+    mapping(uint256 => bool) public transactionExecuted;
+    mapping(uint256 => mapping(address => bool)) public transactionConfirms;
+
+    // Constructor
+    constructor(address owner1, address owner2, address owner3) {
+        if (owner1 == address(0) || owner2 == address(0) || owner3 == address(0)) {
+            revert("Owner address cannot be zero");
+        }
+        if (owner1 == owner2 || owner1 == owner3 || owner2 == owner3) {
+            revert("Owners must be unique");
+        }
+        owners = [owner1, owner2, owner3];
+    }
+
+    // Events
+    event TransactionSubmitted(uint256 txId, address to, uint256 value);
+    event TransactionConfirmed(uint256 txId, address owner);
+    event TransactionExecuted(uint256 txId, address to, uint256 value);
+
+    // Functions
+    function receive() external payable {}
+
+    function isOwner(address account) public view returns (bool) {
+        for (uint256 i = 0; i < owners.length; i++) {
+            if (owners[i] == account) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function transactionCount() public view returns (uint256) {
+        return transactionExecuted.length;
+    }
+
+    function submit(address to, uint256 value) public returns (uint256 txId) {
+        require(isOwner(msg.sender), "Only owner can submit transactions");
+        txId = transactionExecuted.length;
+        transactionExecuted[txId] = false;
+        transactionConfirms[txId][msg.sender] = false;
+        emit TransactionSubmitted(txId, to, value);
+    }
+
+    function confirm(uint256 txId) public {
+        require(isOwner(msg.sender), "Only owner can confirm transactions");
+        require(transactionExecuted[txId] == false, "Transaction has already been executed");
+        require(transactionConfirms[txId][msg.sender] == false, "Already confirmed by the caller");
+        transactionConfirms[txId][msg.sender] = true;
+        emit TransactionConfirmed(txId, msg.sender);
+        if (transactionCount() == owners.length) {
+            execute(txId);
+        }
+    }
+
+    function execute(uint256 txId) public {
+        require(isOwner(msg.sender), "Only owner can execute transactions");
+        require(transactionExecuted[txId] == false, "Transaction has already been executed");
+        require(transactionConfirms[txId][owners[0]] == true && transactionConfirms[txId][owners[1]] == true, "Not enough confirmations");
+        transactionExecuted[txId] = true;
+        (bool success, ) = payable(to).call{value: value}("");
+        require(success, "Transaction execution failed");
+        emit TransactionExecuted(txId, to, value);
+    }
+
+    function isConfirmed(uint256 txId, address owner) public view returns (bool) {
+        return transactionConfirms[txId][owner];
+    }
+
+    function getTransaction(uint256 txId) public view returns (address to, uint256 value, bool executed, uint256 numConfirmations) {
+        return (to, value, transactionExecuted[txId], transactionConfirms[txId][owners[0]] + transactionConfirms[txId][owners[1]]);
+    }
+}

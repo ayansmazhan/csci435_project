@@ -1,0 +1,46 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Escrow {
+    address public seller;
+    address public arbiter;
+    address public buyer;
+    bool public settled;
+    uint256 public amount;
+
+    constructor(address seller_, address arbiter_) payable {
+        if (seller_ == address(0)) {
+            revert("Seller address cannot be zero");
+        }
+        if (arbiter_ == address(0)) {
+            revert("Arbiter address cannot be zero");
+        }
+
+        seller = seller_;
+        arbiter = arbiter_;
+        buyer = msg.sender;
+        amount = msg.value;
+
+        require(amount > 0, "No ETH sent");
+    }
+
+    function release() external payable {
+        require(!settled, "Escrow is already settled");
+        require(msg.sender == buyer || msg.sender == arbiter, "Only buyer or arbiter can release");
+
+        (bool success, ) = seller.call{value: amount}("");
+        require(success, "Transfer to seller failed");
+
+        settled = true;
+    }
+
+    function refund() external payable {
+        require(!settled, "Escrow is already settled");
+        require(msg.sender == seller || msg.sender == arbiter, "Only seller or arbiter can refund");
+
+        (bool success, ) = buyer.call{value: amount}("");
+        require(success, "Transfer to buyer failed");
+
+        settled = true;
+    }
+}

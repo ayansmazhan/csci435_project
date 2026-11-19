@@ -85,9 +85,10 @@ def compiler_output(sol_file):
 
 
 # ---------- step 4: does it pass the tests? ----------
-def run_tests(sol_file, name):
-    """Build a throw-away Foundry project with ONLY this contract and its test.
-    Returns (test file compiled?, tests passed, tests total)."""
+def run_tests(sol_file, name, test_file=None):
+    """Build a throw-away Foundry project with ONLY this contract and one test file
+    (by default foundry/test/<name>.t.sol). Returns (test file compiled?, tests passed, tests total)."""
+    test_file = Path(test_file) if test_file else ROOT / "foundry" / "test" / f"{name}.t.sol"
     with tempfile.TemporaryDirectory() as tmp:
         work = Path(tmp)
         (work / "src").mkdir()
@@ -95,7 +96,7 @@ def run_tests(sol_file, name):
         shutil.copy(ROOT / "foundry" / "foundry.toml", work)
         (work / "lib").symlink_to(ROOT / "foundry" / "lib")          # reuse forge-std
         shutil.copy(sol_file, work / "src" / f"{name}.sol")
-        shutil.copy(ROOT / "foundry" / "test" / f"{name}.t.sol", work / "test")
+        shutil.copy(test_file, work / "test")
         p = subprocess.run(["forge", "test", "--json"], cwd=work,
                            capture_output=True, text=True)
     try:

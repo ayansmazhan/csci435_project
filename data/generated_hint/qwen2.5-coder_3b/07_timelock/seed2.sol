@@ -1,0 +1,60 @@
+pragma solidity ^0.8.24;
+
+contract TimeLock {
+    // Mapping from user addresses to their unlock times
+    mapping(address => uint256) public unlockTimes;
+
+    // Mapping from user addresses to their balances
+    mapping(address => uint256) public balances;
+
+    // Deposit function
+    function deposit(uint256 lockDuration) external payable {
+        require(msg.value > 0, "Deposit amount must be greater than zero");
+        
+        // Calculate the new unlock time
+        uint256 newUnlockTime = block.timestamp + lockDuration;
+
+        // Update the unlock time if the new unlock time is later
+        if (unlockTimes[msg.sender] < newUnlockTime) {
+            unlockTimes[msg.sender] = newUnlockTime;
+        }
+
+        // Add the deposit to the user's balance
+        balances[msg.sender] += msg.value;
+    }
+
+    // Increase lock time function
+    function increaseLockTime(uint256 extraSeconds) external {
+        require(balances[msg.sender] > 0, "User has no balance to increase lock time");
+        
+        // Calculate the new unlock time
+        uint256 newUnlockTime = unlockTimes[msg.sender] + extraSeconds;
+
+        // Update the unlock time if the new unlock time is later
+        if (newUnlockTime > unlockTimes[msg.sender]) {
+            unlockTimes[msg.sender] = newUnlockTime;
+        }
+    }
+
+    // Withdraw function
+    function withdraw() external {
+        require(block.timestamp >= unlockTimes[msg.sender], "Cannot withdraw before unlock time");
+        require(balances[msg.sender] > 0, "User has no balance to withdraw");
+
+        // Transfer the balance to the caller
+        payable(msg.sender).transfer(balances[msg.sender]);
+
+        // Set the user's balance to 0
+        balances[msg.sender] = 0;
+    }
+
+    // Balance of function
+    function balanceOf(address user) external view returns (uint256) {
+        return balances[user];
+    }
+
+    // Unlock time function
+    function unlockTime(address user) external view returns (uint256) {
+        return unlockTimes[user];
+    }
+}

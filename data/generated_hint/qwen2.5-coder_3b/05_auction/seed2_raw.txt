@@ -1,0 +1,68 @@
+```solidity
+pragma solidity ^0.8.24;
+
+contract Auction {
+    address private seller;
+    uint256 public endTime;
+    address public highestBidder;
+    uint256 public highestBid;
+    mapping(address => uint256) public pendingReturns;
+
+    constructor(uint256 biddingTime) {
+        seller = msg.sender;
+        endTime = block.timestamp + biddingTime;
+    }
+
+    function seller() public view returns (address) {
+        return seller;
+    }
+
+    function endTime() public view returns (uint256) {
+        return endTime;
+    }
+
+    function highestBidder() public view returns (address) {
+        return highestBidder;
+    }
+
+    function highestBid() public view returns (uint256) {
+        return highestBid;
+    }
+
+    function pendingReturns(address bidder) public view returns (uint256) {
+        return pendingReturns[bidder];
+    }
+
+    function ended() public view returns (bool) {
+        return block.timestamp >= endTime;
+    }
+
+    function bid() public payable {
+        require(block.timestamp < endTime, "Auction is not active");
+        require(msg.value > highestBid, "Bid must be higher than current highest bid");
+
+        if (highestBidder != address(0)) {
+            pendingReturns[highestBidder] += highestBid;
+        }
+
+        highestBidder = msg.sender;
+        highestBid = msg.value;
+    }
+
+    function withdraw() public {
+        require(pendingReturns[msg.sender] > 0, "No pending returns to withdraw");
+        uint256 amount = pendingReturns[msg.sender];
+        pendingReturns[msg.sender] = 0;
+        payable(msg.sender).transfer(amount);
+    }
+
+    function end() public {
+        require(block.timestamp >= endTime, "Auction is not ended");
+        require(ended(), "Auction has already ended");
+
+        payable(seller).transfer(highestBid);
+    }
+}
+```
+
+This contract implements the required auction functionality with the specified interface. It includes a constructor to set the auction duration, functions to bid, withdraw, and end the auction, along with view functions to get the contract state.

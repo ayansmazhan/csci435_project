@@ -22,6 +22,11 @@ from pipeline import (ROOT, SPECS, TEMPERATURE, PROMPT_TEMPLATE, generate,
 MODELS = ["qwen3.5:4b", "qwen2.5-coder:3b"]
 SEEDS = [1, 2, 3]
 RESULTS_CSV = ROOT / "data" / "results.csv"
+GEN_DIR = ROOT / "data" / "generated"
+
+# Follow-up experiment (--hint): one extra sentence about the most common compile error.
+HINT = ("\n\nNote: in Solidity, a `public` state variable automatically creates a getter function "
+        "with the same name. Never declare a function with the same name as a state variable.")
 
 REPAIR_TEMPLATE = """You are a Solidity developer. You were asked to implement this specification:
 
@@ -59,7 +64,7 @@ def attempt(spec, model, seed, prompt, round_no):
     """Ask the model once, save its answer, evaluate it, append a row. Returns (row, .sol path)."""
     name = SPECS[spec]
     response, seconds, meta = generate(prompt, model, seed)
-    out_dir = ROOT / "data" / "generated" / model.replace(":", "_") / spec
+    out_dir = GEN_DIR / model.replace(":", "_") / spec
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = f"seed{seed}" + ("_repair" if round_no else "")
     (out_dir / f"{stem}_raw.txt").write_text(response)
@@ -95,13 +100,19 @@ def main():
     ap.add_argument("--specs", nargs="+", default=list(SPECS), choices=list(SPECS))
     ap.add_argument("--models", nargs="+", default=MODELS)
     ap.add_argument("--seeds", nargs="+", type=int, default=SEEDS)
+    ap.add_argument("--hint", action="store_true",
+                    help="follow-up experiment: add HINT to every prompt; results go to results_hint.csv")
     args = ap.parse_args()
+    global RESULTS_CSV, GEN_DIR
+    if args.hint:
+        RESULTS_CSV = ROOT / "data" / "results_hint.csv"
+        GEN_DIR = ROOT / "data" / "generated_hint"
 
     done = already_done()
     for model in args.models:
         warm_up(model)
         for spec in args.specs:
-            spec_text = (ROOT / "specs" / f"{spec}.md").read_text()
+            spec_text = (ROOT / "specs" / f"{spec}.md").read_text() + (HINT if args.hint else "")
             for seed in args.seeds:
                 if (spec, model, str(seed)) in done:
                     print(f"skip {spec} / {model} / seed {seed} (already in results.csv)")

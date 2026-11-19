@@ -1,0 +1,37 @@
+Certainly! Below is the complete Solidity source code for the `PiggyBank` contract based on the specified requirements.
+
+```solidity
+pragma solidity ^0.8.24;
+
+contract PiggyBank {
+    mapping(address => uint256) private balances;
+
+    event Deposit(address indexed depositor, uint256 amount);
+    event Withdraw(address indexed withdrawer, uint256 amount);
+
+    function deposit() external payable {
+        require(msg.value > 0, "Deposit amount must be greater than zero");
+        balances[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 amount) external {
+        require(amount > 0, "Withdrawal amount must be greater than zero");
+        require(amount <= balances[msg.sender], "Insufficient balance");
+        balances[msg.sender] -= amount;
+        payable(msg.sender).transfer(amount);
+        emit Withdraw(msg.sender, amount);
+    }
+
+    function balanceOf(address user) external view returns (uint256) {
+        return balances[user];
+    }
+}
+```
+
+### Explanation:
+- **Mapping**: `mapping(address => uint256) private balances;` is used to store the balance of each address.
+- **Events**: `Deposit` and `Withdraw` are events that are emitted when a deposit or withdrawal occurs.
+- **Deposit Function**: Checks if the `msg.value` is greater than zero and adds it to the user's balance. It emits a `Deposit` event.
+- **Withdraw Function**: Checks if the `amount` is greater than zero and ensures the user has sufficient balance to withdraw. It then transfers the amount to the caller and emits a `Withdraw` event.
+- **BalanceOf Function**: Returns the current balance of the specified user.

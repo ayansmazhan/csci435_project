@@ -1,0 +1,53 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Voting {
+    address public chairperson;
+    uint256 public numProposals;
+    mapping(address => bool) public hasRightToVote;
+    mapping(uint256 => uint256) public voteCounts;
+    mapping(address => bool) public hasVoted;
+
+    constructor(uint256 _numProposals) {
+        require(_numProposals > 0, "Invalid number of proposals");
+        chairperson = msg.sender;
+        numProposals = _numProposals;
+    }
+
+    function giveRightToVote(address voter) external {
+        require(msg.sender == chairperson, "Only chairperson can grant voting rights");
+        require(!hasRightToVote[voter], "Voter already has right to vote");
+        hasRightToVote[voter] = true;
+    }
+
+    function vote(uint256 proposal) external {
+        require(proposal < numProposals, "Invalid proposal number");
+        require(hasRightToVote[msg.sender], "No voting rights");
+        require(!hasVoted[msg.sender], "Already voted");
+
+        hasVoted[msg.sender] = true;
+        voteCounts[proposal]++;
+    }
+
+    function voteCount(uint256 proposal) external view returns (uint256) {
+        return voteCounts[proposal];
+    }
+
+    function hasVoted(address voter) external view returns (bool) {
+        return hasVoted[voter];
+    }
+
+    function winningProposal() external view returns (uint256) {
+        uint256 maxVotes = 0;
+        uint256 winning = 0;
+
+        for (uint256 i = 0; i < numProposals; ++i) {
+            if (voteCounts[i] > maxVotes) {
+                maxVotes = voteCounts[i];
+                winning = i;
+            }
+        }
+
+        return winning;
+    }
+}

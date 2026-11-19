@@ -1,0 +1,52 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract TimeLock {
+    mapping(address => uint256) public balances;
+    mapping(address => uint256) public unlockTime;
+
+    function deposit(uint256 lockDuration) external payable {
+        require(msg.value > 0, "Deposit value must be greater than zero");
+        
+        address caller = msg.sender;
+        
+        if (unlockTime[caller] == 0 || block.timestamp >= unlockTime[caller]) {
+            unlockTime[caller] = uint256(block.timestamp) + lockDuration;
+        }
+        
+        balances[caller] += msg.value;
+    }
+
+    function increaseLockTime(uint256 extraSeconds) external {
+        address caller = msg.sender;
+        
+        require(balances[caller] > 0, "No balance to increase lock time");
+        
+        // Ensure the unlock time never decreases
+        uint256 currentUnlockTime = unlockTime[caller];
+        uint256 newUnlockTime = currentUnlockTime + extraSeconds;
+        require(newUnlockTime >= currentUnlockTime, "Unlock time cannot be decreased");
+        
+        unlockTime[caller] = newUnlockTime;
+    }
+
+    function withdraw() external {
+        address caller = msg.sender;
+        
+        require(balances[caller] > 0, "No balance to withdraw");
+        require(block.timestamp >= unlockTime[caller], "Vault has not unlocked yet");
+        
+        (bool success, ) = caller.call{value: balances[caller]}("");
+        require(success, "Transfer failed");
+        
+        balances[caller] = 0;
+    }
+
+    function balanceOf(address user) external view returns (uint256) {
+        return balances[user];
+    }
+
+    function unlockTime(address user) external view returns (uint256) {
+        return unlockTime[user];
+    }
+}

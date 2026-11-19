@@ -1,0 +1,66 @@
+The issue in your code is that the `totalSupply` variable is declared both as a public state variable and as a public function in the constructor. This causes a conflict because the function and the state variable have the same name. To resolve this, you can either remove the `totalSupply` function or change its name. Here's the corrected version:
+
+```solidity
+pragma solidity ^0.8.24;
+
+contract SimpleToken {
+    // State variables
+    address public owner;
+    uint256 public _totalSupply;
+    mapping(address => uint256) public balances;
+    mapping(address => mapping(address => uint256)) public allowances;
+
+    // Constructor
+    constructor(uint256 initialSupply) {
+        owner = msg.sender;
+        _totalSupply = initialSupply;
+        balances[msg.sender] = initialSupply;
+    }
+
+    // View functions
+    function totalSupply() external view returns (uint256) {
+        return _totalSupply;
+    }
+
+    function balanceOf(address account) external view returns (uint256) {
+        return balances[account];
+    }
+
+    // Transfer function
+    function transfer(address to, uint256 amount) external returns (bool) {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        require(to != address(0), "Recipient cannot be zero address");
+
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    // Approve function
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowances[msg.sender][spender] = amount;
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    // TransferFrom function
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        require(allowances[from][msg.sender] >= amount, "Insufficient allowance");
+        require(balances[from] >= amount, "Insufficient balance");
+        require(to != address(0), "Recipient cannot be zero address");
+
+        balances[from] -= amount;
+        balances[to] += amount;
+        allowances[from][spender] -= amount;
+        emit Transfer(from, to, amount);
+        return true;
+    }
+
+    // Events
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+}
+```
+
+This change renames the `totalSupply` function to `_totalSupply`, which resolves the conflict and ensures that the contract compiles without errors.

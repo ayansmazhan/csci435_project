@@ -1,0 +1,82 @@
+Certainly! Let's address the issues in the code and ensure it compiles successfully with Solidity 0.8.24.
+
+### Key Issues:
+1. **Duplicate State Variables**: The contract has duplicate state variables like `seller`, `endTime`, `highestBidder`, `highestBid`, and `pendingReturns`. This is not allowed in Solidity.
+2. **Function Overlaps**: The `bid()` function is defined twice with different return types, which is also not allowed.
+3. **Inconsistent Naming**: The function names and variables are inconsistent in their naming conventions, which can lead to confusion and potential issues.
+
+### Corrected Code:
+Let's ensure all state variables are unique and consistent in naming. Here is the corrected Solidity contract:
+
+```solidity
+pragma solidity ^0.8.24;
+
+contract Auction {
+    address public seller;
+    uint256 public biddingEndTime;
+    address public highestBidder;
+    uint256 public highestBid;
+    mapping(address => uint256) public pendingReturns;
+
+    constructor(uint256 _biddingTime) {
+        seller = msg.sender;
+        biddingEndTime = block.timestamp + _biddingTime;
+    }
+
+    function seller() external view returns (address) {
+        return seller;
+    }
+
+    function biddingEndTime() external view returns (uint256) {
+        return biddingEndTime;
+    }
+
+    function highestBidder() external view returns (address) {
+        return highestBidder;
+    }
+
+    function highestBid() external view returns (uint256) {
+        return highestBid;
+    }
+
+    function pendingReturns(address bidder) external view returns (uint256) {
+        return pendingReturns[bidder];
+    }
+
+    function ended() external view returns (bool) {
+        return block.timestamp >= biddingEndTime;
+    }
+
+    function bid() external payable {
+        require(block.timestamp < biddingEndTime, "Auction has ended");
+        require(msg.value > highestBid, "Bid must be greater than the current highest bid");
+
+        if (highestBidder != address(0)) {
+            pendingReturns[highestBidder] += highestBid;
+        }
+
+        highestBidder = msg.sender;
+        highestBid = msg.value;
+    }
+
+    function withdraw() external {
+        require(pendingReturns[msg.sender] > 0, "No pending returns");
+        uint256 amount = pendingReturns[msg.sender];
+        pendingReturns[msg.sender] = 0;
+        payable(msg.sender).transfer(amount);
+    }
+
+    function end() external {
+        require(block.timestamp >= biddingEndTime, "Auction has not ended");
+        require(highestBidder != address(0), "No bids");
+
+        payable(seller).transfer(highestBid);
+    }
+}
+```
+
+### Key Changes:
+- **Renamed Variables**: Ensured all variables are distinct and follow a consistent naming convention (e.g., `biddingEndTime` instead of `endTime`).
+- **Corrected Function Overlaps**: Ensured that each function has a unique return type.
+
+This corrected code should now compile without any errors with Solidity 0.8.24.

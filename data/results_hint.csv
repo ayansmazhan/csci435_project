@@ -1,0 +1,83 @@
+timestamp,spec,model,seed,temperature,round,gen_seconds,compiles,compile_error,tests_built,tests_passed,tests_total,all_tests_pass,slither_high,slither_medium,slither_low,slither_info,slither_detectors,file
+2026-11-19T14:09:40,01_piggybank,qwen3.5:4b,1,0.7,0,22.6,False,"Error: Undeclared identifier. Did you mean ""balances"" or ""balanceOf""?",False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/01_piggybank/seed1.sol
+2026-11-19T14:10:12,01_piggybank,qwen3.5:4b,1,0.7,1,29.7,True,,True,5,5,True,0,0,0,1,low-level-calls,data/generated_hint/qwen3.5_4b/01_piggybank/seed1_repair.sol
+2026-11-19T14:10:36,01_piggybank,qwen3.5:4b,2,0.7,0,21.2,True,,True,5,5,True,1,0,0,1,low-level-calls;reentrancy-eth,data/generated_hint/qwen3.5_4b/01_piggybank/seed2.sol
+2026-11-19T14:10:55,01_piggybank,qwen3.5:4b,3,0.7,0,17.1,True,,True,5,5,True,0,0,0,1,reentrancy-unlimited-gas,data/generated_hint/qwen3.5_4b/01_piggybank/seed3.sol
+2026-11-19T14:11:51,02_token,qwen3.5:4b,1,0.7,0,54.4,True,,True,10,12,False,0,0,0,0,immutable-states,data/generated_hint/qwen3.5_4b/02_token/seed1.sol
+2026-11-19T14:12:55,02_token,qwen3.5:4b,2,0.7,0,60.9,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/02_token/seed2.sol
+2026-11-19T14:14:17,02_token,qwen3.5:4b,2,0.7,1,81.5,True,,True,12,12,True,0,0,0,0,immutable-states,data/generated_hint/qwen3.5_4b/02_token/seed2_repair.sol
+2026-11-19T14:15:16,02_token,qwen3.5:4b,3,0.7,0,55.5,True,,True,12,12,True,0,0,0,0,immutable-states,data/generated_hint/qwen3.5_4b/02_token/seed3.sol
+2026-11-19T14:16:03,03_escrow,qwen3.5:4b,1,0.7,0,42.6,False,"Error: Receive ether function must be payable, but is ""nonpayable"".",False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/03_escrow/seed1.sol
+2026-11-19T14:16:52,03_escrow,qwen3.5:4b,1,0.7,1,48.3,False,"Error: Receive ether function must be payable, but is ""nonpayable"".",False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/03_escrow/seed1_repair.sol
+2026-11-19T14:17:37,03_escrow,qwen3.5:4b,2,0.7,0,45.2,False,"Error: ""msg.value"" and ""callvalue()"" can only be used in payable public functions. Make the function ""payable"" or use an internal function to avoid this error.",False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/03_escrow/seed2.sol
+2026-11-19T14:18:41,03_escrow,qwen3.5:4b,2,0.7,1,62.7,True,,True,15,15,True,2,0,0,2,immutable-states;low-level-calls;reentrancy-eth,data/generated_hint/qwen3.5_4b/03_escrow/seed2_repair.sol
+2026-11-19T14:19:26,03_escrow,qwen3.5:4b,3,0.7,0,41.9,False,"Error: Receive ether function must be payable, but is ""nonpayable"".",False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/03_escrow/seed3.sol
+2026-11-19T14:20:15,03_escrow,qwen3.5:4b,3,0.7,1,47.5,False,"Error: ""msg.value"" and ""callvalue()"" can only be used in payable public functions. Make the function ""payable"" or use an internal function to avoid this error.",False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/03_escrow/seed3_repair.sol
+2026-11-19T14:21:18,04_voting,qwen3.5:4b,1,0.7,0,62.0,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/04_voting/seed1.sol
+2026-11-19T14:25:39,04_voting,qwen3.5:4b,1,0.7,1,259.8,False,Error: Function with same name and parameter types defined twice.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/04_voting/seed1_repair.sol
+2026-11-19T14:26:55,04_voting,qwen3.5:4b,2,0.7,0,75.1,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/04_voting/seed2.sol
+2026-11-19T14:29:22,04_voting,qwen3.5:4b,2,0.7,1,146.5,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/04_voting/seed2_repair.sol
+2026-11-19T14:31:42,04_voting,qwen3.5:4b,3,0.7,0,138.6,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/04_voting/seed3.sol
+2026-11-19T14:40:20,04_voting,qwen3.5:4b,3,0.7,1,516.4,False,"Error: Expected pragma, import directive or contract/interface/library/struct/enum/constant/function/error definition.",False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/04_voting/seed3_repair.sol
+2026-11-19T14:43:09,05_auction,qwen3.5:4b,1,0.7,0,167.7,True,,True,12,16,False,0,0,2,1,immutable-states;reentrancy-unlimited-gas;timestamp,data/generated_hint/qwen3.5_4b/05_auction/seed1.sol
+2026-11-19T14:45:14,05_auction,qwen3.5:4b,2,0.7,0,121.2,True,,False,0,0,False,0,0,2,1,immutable-states;reentrancy-unlimited-gas;timestamp,data/generated_hint/qwen3.5_4b/05_auction/seed2.sol
+2026-11-19T14:46:56,05_auction,qwen3.5:4b,3,0.7,0,99.8,True,,True,16,16,True,0,0,2,0,immutable-states;timestamp,data/generated_hint/qwen3.5_4b/05_auction/seed3.sol
+2026-11-19T14:50:20,06_crowdfunding,qwen3.5:4b,1,0.7,0,199.6,True,,True,16,16,True,0,0,3,2,immutable-states;reentrancy-unlimited-gas;timestamp,data/generated_hint/qwen3.5_4b/06_crowdfunding/seed1.sol
+2026-11-19T14:51:48,06_crowdfunding,qwen3.5:4b,2,0.7,0,83.8,False,Error: This expression is not callable.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/06_crowdfunding/seed2.sol
+2026-11-19T14:54:20,06_crowdfunding,qwen3.5:4b,2,0.7,1,150.2,True,,True,16,16,True,0,0,3,2,immutable-states;reentrancy-unlimited-gas;timestamp,data/generated_hint/qwen3.5_4b/06_crowdfunding/seed2_repair.sol
+2026-11-19T14:56:42,06_crowdfunding,qwen3.5:4b,3,0.7,0,138.7,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/06_crowdfunding/seed3.sol
+2026-11-19T14:58:46,06_crowdfunding,qwen3.5:4b,3,0.7,1,122.1,False,Error: Undeclared identifier.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/06_crowdfunding/seed3_repair.sol
+2026-11-19T15:01:21,07_timelock,qwen3.5:4b,1,0.7,0,154.2,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/07_timelock/seed1.sol
+2026-11-19T15:18:05,07_timelock,qwen3.5:4b,1,0.7,1,1002.7,True,,True,11,11,True,1,0,3,1,low-level-calls;reentrancy-eth;timestamp,data/generated_hint/qwen3.5_4b/07_timelock/seed1_repair.sol
+2026-11-19T15:24:48,07_timelock,qwen3.5:4b,2,0.7,0,400.2,False,Error: Function with same name and parameter types defined twice.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/07_timelock/seed2.sol
+2026-11-19T15:28:40,07_timelock,qwen3.5:4b,2,0.7,1,230.8,True,,True,10,11,False,0,0,3,1,reentrancy-unlimited-gas;timestamp,data/generated_hint/qwen3.5_4b/07_timelock/seed2_repair.sol
+2026-11-19T15:31:08,07_timelock,qwen3.5:4b,3,0.7,0,144.0,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/07_timelock/seed3.sol
+2026-11-19T15:35:08,07_timelock,qwen3.5:4b,3,0.7,1,238.6,True,,True,10,11,False,1,1,3,1,incorrect-equality;low-level-calls;reentrancy-eth;timestamp,data/generated_hint/qwen3.5_4b/07_timelock/seed3_repair.sol
+2026-11-19T15:41:30,08_multisig,qwen3.5:4b,1,0.7,0,379.4,False,"Error: Undeclared identifier. ""isOwner"" is not (or not yet) visible at this point.",False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/08_multisig/seed1.sol
+2026-11-19T15:46:39,08_multisig,qwen3.5:4b,1,0.7,1,306.5,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/08_multisig/seed1_repair.sol
+2026-11-19T15:49:21,08_multisig,qwen3.5:4b,2,0.7,0,161.9,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/08_multisig/seed2.sol
+2026-11-19T15:53:21,08_multisig,qwen3.5:4b,2,0.7,1,238.1,False,"Error: Undeclared identifier. ""isOwner"" is not (or not yet) visible at this point.",False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/08_multisig/seed2_repair.sol
+2026-11-19T15:55:53,08_multisig,qwen3.5:4b,3,0.7,0,151.1,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/08_multisig/seed3.sol
+2026-11-19T15:58:26,08_multisig,qwen3.5:4b,3,0.7,1,152.5,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen3.5_4b/08_multisig/seed3_repair.sol
+2026-11-19T15:59:13,01_piggybank,qwen2.5-coder:3b,1,0.7,0,32.9,True,,True,5,5,True,0,0,0,1,reentrancy-unlimited-gas,data/generated_hint/qwen2.5-coder_3b/01_piggybank/seed1.sol
+2026-11-19T15:59:29,01_piggybank,qwen2.5-coder:3b,2,0.7,0,12.2,True,,True,5,5,True,0,0,0,1,reentrancy-unlimited-gas,data/generated_hint/qwen2.5-coder_3b/01_piggybank/seed2.sol
+2026-11-19T15:59:46,01_piggybank,qwen2.5-coder:3b,3,0.7,0,16.2,True,,True,5,5,True,0,0,0,1,reentrancy-unlimited-gas,data/generated_hint/qwen2.5-coder_3b/01_piggybank/seed3.sol
+2026-11-19T16:00:33,02_token,qwen2.5-coder:3b,1,0.7,0,45.1,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/02_token/seed1.sol
+2026-11-19T16:01:44,02_token,qwen2.5-coder:3b,1,0.7,1,70.0,False,Error: Undeclared identifier.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/02_token/seed1_repair.sol
+2026-11-19T16:02:21,02_token,qwen2.5-coder:3b,2,0.7,0,36.9,True,,True,10,12,False,0,0,0,0,,data/generated_hint/qwen2.5-coder_3b/02_token/seed2.sol
+2026-11-19T16:03:02,02_token,qwen2.5-coder:3b,3,0.7,0,38.1,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/02_token/seed3.sol
+2026-11-19T16:03:57,02_token,qwen2.5-coder:3b,3,0.7,1,55.2,True,,True,12,12,True,0,0,0,0,immutable-states,data/generated_hint/qwen2.5-coder_3b/02_token/seed3_repair.sol
+2026-11-19T16:04:38,03_escrow,qwen2.5-coder:3b,1,0.7,0,38.7,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/03_escrow/seed1.sol
+2026-11-19T16:05:30,03_escrow,qwen2.5-coder:3b,1,0.7,1,51.5,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/03_escrow/seed1_repair.sol
+2026-11-19T16:05:55,03_escrow,qwen2.5-coder:3b,2,0.7,0,24.0,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/03_escrow/seed2.sol
+2026-11-19T16:06:39,03_escrow,qwen2.5-coder:3b,2,0.7,1,43.7,False,"Error: Expected a state variable declaration. If you intended this as a fallback function or a function to handle plain ether transactions, use the ""fallback"" keyword or the ""receive"" keyword instead.",False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/03_escrow/seed2_repair.sol
+2026-11-19T16:07:07,03_escrow,qwen2.5-coder:3b,3,0.7,0,28.2,False,Error: Expected identifier but got 'payable',False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/03_escrow/seed3.sol
+2026-11-19T16:07:51,03_escrow,qwen2.5-coder:3b,3,0.7,1,43.2,False,Error: Expected identifier but got 'payable',False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/03_escrow/seed3_repair.sol
+2026-11-19T16:08:38,04_voting,qwen2.5-coder:3b,1,0.7,0,47.0,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/04_voting/seed1.sol
+2026-11-19T16:09:49,04_voting,qwen2.5-coder:3b,1,0.7,1,70.8,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/04_voting/seed1_repair.sol
+2026-11-19T16:10:26,04_voting,qwen2.5-coder:3b,2,0.7,0,36.7,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/04_voting/seed2.sol
+2026-11-19T16:11:35,04_voting,qwen2.5-coder:3b,2,0.7,1,68.3,True,,False,0,0,False,0,0,1,0,immutable-states;shadowing-local,data/generated_hint/qwen2.5-coder_3b/04_voting/seed2_repair.sol
+2026-11-19T16:12:12,04_voting,qwen2.5-coder:3b,3,0.7,0,34.7,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/04_voting/seed3.sol
+2026-11-19T16:13:12,04_voting,qwen2.5-coder:3b,3,0.7,1,59.9,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/04_voting/seed3_repair.sol
+2026-11-19T16:14:15,05_auction,qwen2.5-coder:3b,1,0.7,0,62.9,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/05_auction/seed1.sol
+2026-11-19T16:15:35,05_auction,qwen2.5-coder:3b,1,0.7,1,78.6,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/05_auction/seed1_repair.sol
+2026-11-19T16:16:11,05_auction,qwen2.5-coder:3b,2,0.7,0,36.1,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/05_auction/seed2.sol
+2026-11-19T16:17:25,05_auction,qwen2.5-coder:3b,2,0.7,1,73.8,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/05_auction/seed2_repair.sol
+2026-11-19T16:17:59,05_auction,qwen2.5-coder:3b,3,0.7,0,33.0,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/05_auction/seed3.sol
+2026-11-19T16:19:18,05_auction,qwen2.5-coder:3b,3,0.7,1,78.2,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/05_auction/seed3_repair.sol
+2026-11-19T16:20:20,06_crowdfunding,qwen2.5-coder:3b,1,0.7,0,61.6,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/06_crowdfunding/seed1.sol
+2026-11-19T16:21:49,06_crowdfunding,qwen2.5-coder:3b,1,0.7,1,87.8,False,"Error: ""send"" and ""transfer"" are only available for objects of type ""address payable"", not ""address"".",False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/06_crowdfunding/seed1_repair.sol
+2026-11-19T16:22:29,06_crowdfunding,qwen2.5-coder:3b,2,0.7,0,39.6,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/06_crowdfunding/seed2.sol
+2026-11-19T16:23:47,06_crowdfunding,qwen2.5-coder:3b,2,0.7,1,77.3,True,,True,16,16,True,0,0,3,7,immutable-states;naming-convention;reentrancy-unlimited-gas;timestamp,data/generated_hint/qwen2.5-coder_3b/06_crowdfunding/seed2_repair.sol
+2026-11-19T16:24:32,06_crowdfunding,qwen2.5-coder:3b,3,0.7,0,42.6,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/06_crowdfunding/seed3.sol
+2026-11-19T16:26:10,06_crowdfunding,qwen2.5-coder:3b,3,0.7,1,96.6,False,Error: This expression is not callable.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/06_crowdfunding/seed3_repair.sol
+2026-11-19T16:27:13,07_timelock,qwen2.5-coder:3b,1,0.7,0,62.8,False,"Error: ""msg.value"" and ""callvalue()"" can only be used in payable public functions. Make the function ""payable"" or use an internal function to avoid this error.",False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/07_timelock/seed1.sol
+2026-11-19T16:29:03,07_timelock,qwen2.5-coder:3b,1,0.7,1,108.4,True,,True,11,11,True,0,0,3,0,timestamp,data/generated_hint/qwen2.5-coder_3b/07_timelock/seed1_repair.sol
+2026-11-19T16:29:51,07_timelock,qwen2.5-coder:3b,2,0.7,0,44.8,True,,True,11,11,True,0,0,3,1,reentrancy-unlimited-gas;timestamp,data/generated_hint/qwen2.5-coder_3b/07_timelock/seed2.sol
+2026-11-19T16:30:30,07_timelock,qwen2.5-coder:3b,3,0.7,0,35.8,True,,True,10,11,False,0,0,1,1,reentrancy-unlimited-gas;timestamp,data/generated_hint/qwen2.5-coder_3b/07_timelock/seed3.sol
+2026-11-19T16:32:20,08_multisig,qwen2.5-coder:3b,1,0.7,0,106.7,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/08_multisig/seed1.sol
+2026-11-19T16:34:34,08_multisig,qwen2.5-coder:3b,1,0.7,1,132.6,False,Error: Identifier already declared.,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/08_multisig/seed1_repair.sol
+2026-11-19T16:35:38,08_multisig,qwen2.5-coder:3b,2,0.7,0,62.7,False,"Error: Undeclared identifier. ""isOwner"" is not (or not yet) visible at this point.",False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/08_multisig/seed2.sol
+2026-11-19T16:38:12,08_multisig,qwen2.5-coder:3b,2,0.7,1,152.9,False,"Error: Undeclared identifier. Did you mean ""tx""?",False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/08_multisig/seed2_repair.sol
+2026-11-19T16:39:43,08_multisig,qwen2.5-coder:3b,3,0.7,0,90.5,False,Error: Expected type name,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/08_multisig/seed3.sol
+2026-11-19T16:42:02,08_multisig,qwen2.5-coder:3b,3,0.7,1,138.5,False,Error: Expected type name,False,0,0,False,,,,,,data/generated_hint/qwen2.5-coder_3b/08_multisig/seed3_repair.sol

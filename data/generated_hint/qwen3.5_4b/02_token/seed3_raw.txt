@@ -1,0 +1,60 @@
+```solidity
+pragma solidity ^0.8.24;
+
+contract SimpleToken {
+    uint256 private totalSupply_;
+    mapping(address => uint256) private balances_;
+    mapping(address => mapping(address => uint256)) private allowances_;
+
+    event Transfer(address indexed from, address indexed to, uint256 value);
+    event Approval(address indexed owner, address indexed spender, uint256 value);
+
+    constructor(uint256 initialSupply) {
+        totalSupply_ = initialSupply;
+        balances_[msg.sender] = initialSupply;
+    }
+
+    function totalSupply() external view returns (uint256) {
+        return totalSupply_;
+    }
+
+    function balanceOf(address account) external view returns (uint256) {
+        return balances_[account];
+    }
+
+    function transfer(address to, uint256 amount) external returns (bool) {
+        require(to != address(0), "Invalid recipient");
+        require(amount <= balances_[msg.sender], "Insufficient balance");
+
+        balances_[msg.sender] -= amount;
+        balances_[to] += amount;
+
+        emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowances_[msg.sender][spender] = amount;
+
+        emit Approval(msg.sender, spender, amount);
+        return true;
+    }
+
+    function allowance(address owner, address spender) external view returns (uint256) {
+        return allowances_[owner][spender];
+    }
+
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        require(to != address(0), "Invalid recipient");
+        require(amount <= allowances_[from][msg.sender], "Insufficient allowance");
+        require(amount <= balances_[from], "Insufficient balance");
+
+        balances_[from] -= amount;
+        balances_[to] += amount;
+        allowances_[from][msg.sender] -= amount;
+
+        emit Transfer(from, to, amount);
+        return true;
+    }
+}
+```

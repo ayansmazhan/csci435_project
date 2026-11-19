@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Escrow {
+    address public seller;
+    address public arbiter;
+    bool public settled;
+
+    constructor(address seller_, address arbiter_) payable {
+        require(msg.value > 0, "No ETH sent");
+        require(seller_ != address(0), "Invalid seller");
+        require(arbiter_ != address(0), "Invalid arbiter");
+        seller = seller_;
+    }
+
+    function release() external {
+        require(settled == false, "Already settled");
+        
+        (bool success,) = payable(seller).call{value: msg.value}("");
+        require(success, "Transfer failed");
+        settled = true;
+    }
+
+    function refund() external {
+        require(settled == false, "Already settled");
+        
+        (bool success,) = payable(msg.sender).call{value: msg.value}("");
+        require(success, "Transfer failed");
+        settled = true;
+    }
+    
+    receive() external payable {
+        revert("No ETH accepted after deployment");
+    }
+    
+    fallback() external payable {
+        revert("No ETH accepted after deployment");
+    }
+}

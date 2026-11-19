@@ -1,0 +1,55 @@
+```solidity
+pragma solidity ^0.8.24;
+
+contract Escrow is payable {
+    address public buyer;
+    address public seller;
+    address public arbiter;
+    bool public settled;
+
+    constructor(address seller_, address arbiter_) payable {
+        if (msg.value == 0) revert("Escrow must be initiated with ETH.");
+        if (seller_ == address(0) || arbiter_ == address(0)) revert("Seller or Arbiter cannot be the zero address.");
+
+        buyer = msg.sender;
+        seller = seller_;
+        arbiter = arbiter_;
+    }
+
+    function buyer() external view returns (address) {
+        return buyer;
+    }
+
+    function seller() external view returns (address) {
+        return seller;
+    }
+
+    function arbiter() external view returns (address) {
+        return arbiter;
+    }
+
+    function settled() external view returns (bool) {
+        return settled;
+    }
+
+    function release() external {
+        require(settled == false, "Escrow is already settled.");
+        require(msg.sender == buyer || msg.sender == arbiter, "Only buyer or arbiter can release the escrow.");
+
+        (bool success, ) = seller.call{value: msg.value}("");
+        require(success, "Failed to send ETH to seller.");
+
+        settled = true;
+    }
+
+    function refund() external {
+        require(settled == false, "Escrow is already settled.");
+        require(msg.sender == seller || msg.sender == arbiter, "Only seller or arbiter can refund the escrow.");
+
+        (bool success, ) = buyer.call{value: msg.value}("");
+        require(success, "Failed to send ETH to buyer.");
+
+        settled = true;
+    }
+}
+```

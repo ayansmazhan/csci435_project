@@ -1,0 +1,44 @@
+spec,mutant,tests_passed,tests_total,killed
+01_piggybank,deposit of 0 allowed,4,5,True
+01_piggybank,withdraw does not reduce balance,4,5,True
+01_piggybank,balance check removed (0.8 underflow still reverts),5,5,False
+02_token,approve adds instead of replacing,11,12,True
+02_token,transferFrom does not reduce allowance,11,12,True
+02_token,transfer to zero address allowed,11,12,True
+02_token,balance check removed (0.8 underflow still reverts),12,12,False
+03_escrow,anyone can release,13,15,True
+03_escrow,release possible twice,14,15,True
+03_escrow,accepts plain ETH,14,15,True
+03_escrow,buyer can also refund,14,15,True
+04_voting,anyone can give the right to vote,13,14,True
+04_voting,double voting allowed,13,14,True
+04_voting,tie goes to the higher number,12,14,True
+04_voting,chairperson votes automatically,12,14,True
+04_voting,giving the right twice allowed,13,14,True
+05_auction,refunds pushed immediately (DoS-prone),11,16,True
+05_auction,outbidding yourself not recorded,15,16,True
+05_auction,end() can run twice,15,16,True
+05_auction,withdraw reverts when nothing to withdraw,14,16,True
+05_auction,bidding allowed at endTime,15,16,True
+05_auction,pending returns overwritten,15,16,True
+06_crowdfunding,goal needs strictly more,15,16,True
+06_crowdfunding,anyone can claim,15,16,True
+06_crowdfunding,refund does not reset contribution,14,16,True
+06_crowdfunding,claim before deadline,15,16,True
+06_crowdfunding,contribution allowed at deadline,15,16,True
+06_crowdfunding,claim possible twice,15,16,True
+06_crowdfunding,totalRaised decreases on refund,15,16,True
+07_timelock,unchecked addition (overflow attack),10,11,True
+07_timelock,deposit can shorten the lock,10,11,True
+07_timelock,withdraw at unlock time blocked,9,11,True
+07_timelock,balance not reset after withdraw,9,11,True
+07_timelock,increaseLockTime without balance,10,11,True
+07_timelock,withdraw of 0 does not revert,9,11,True
+08_multisig,strangers can submit,16,17,True
+08_multisig,owner can confirm twice,16,17,True
+08_multisig,one confirmation is enough,16,17,True
+08_multisig,execute possible twice,16,17,True
+08_multisig,duplicate owners allowed,16,17,True
+08_multisig,failed payment ignored,16,17,True
+08_multisig,submitting auto-confirms,9,17,True
+08_multisig,strangers can execute,16,17,True

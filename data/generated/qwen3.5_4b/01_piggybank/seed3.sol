@@ -1,0 +1,26 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract PiggyBank {
+    mapping(address => uint256) public balances;
+
+    function deposit() external payable {
+        if (msg.value == 0) revert("Deposit amount must be greater than zero");
+        
+        address sender = msg.sender;
+        balances[sender] += msg.value;
+    }
+
+    function withdraw(uint256 amount) external {
+        address sender = msg.sender;
+        
+        if (balances[sender] < amount) revert("Insufficient balance");
+        
+        balances[sender] -= amount;
+        payable(sender).transfer(amount);
+    }
+
+    function balanceOf(address user) external view returns (uint256) {
+        return balances[user];
+    }
+}

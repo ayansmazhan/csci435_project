@@ -13,12 +13,13 @@ Run from the repo root, inside WSL, with the venv active:
 """
 import argparse
 import csv
+import json
 from datetime import datetime
 
 from pipeline import (ROOT, SPECS, TEMPERATURE, PROMPT_TEMPLATE, generate,
                       extract_code, evaluate, compiler_output, save_row)
 
-MODELS = ["qwen2.5-coder:7b", "qwen3.5:4b"]
+MODELS = ["qwen3.5:4b", "qwen2.5-coder:3b"]
 SEEDS = [1, 2, 3]
 RESULTS_CSV = ROOT / "data" / "results.csv"
 
@@ -50,18 +51,24 @@ def already_done():
 def warm_up(model):
     """Load the model into memory once, so loading time is not counted in gen_seconds."""
     print(f"Warming up {model} (loading it into memory)...", flush=True)
-    _, seconds = generate("Reply with OK.", model, 0)
+    _, seconds, _ = generate("Reply with OK.", model, 0)
     print(f"  loaded in {seconds:.0f} s")
 
 
 def attempt(spec, model, seed, prompt, round_no):
     """Ask the model once, save its answer, evaluate it, append a row. Returns (row, .sol path)."""
     name = SPECS[spec]
-    response, seconds = generate(prompt, model, seed)
+    response, seconds, meta = generate(prompt, model, seed)
     out_dir = ROOT / "data" / "generated" / model.replace(":", "_") / spec
     out_dir.mkdir(parents=True, exist_ok=True)
     stem = f"seed{seed}" + ("_repair" if round_no else "")
     (out_dir / f"{stem}_raw.txt").write_text(response)
+    # Side file: why generation stopped ("stop" = finished, "length" = cut off) and how many tokens.
+    (out_dir / f"{stem}_meta.json").write_text(json.dumps({
+        "done_reason": meta.get("done_reason"),
+        "output_tokens": meta.get("eval_count"),
+        "prompt_tokens": meta.get("prompt_eval_count"),
+    }, indent=2))
     sol_file = out_dir / f"{stem}.sol"
     sol_file.write_text(extract_code(response))
     row = {
@@ -78,7 +85,8 @@ def attempt(spec, model, seed, prompt, round_no):
     save_row(row, RESULTS_CSV)
     print(f"  round {round_no}: compiles={row['compiles']} "
           f"tests={row['tests_passed']}/{row['tests_total']} "
-          f"slither H/M={row['slither_high']}/{row['slither_medium']} ({seconds:.0f} s)", flush=True)
+          f"slither H/M={row['slither_high']}/{row['slither_medium']} ({seconds:.0f} s, "
+          f"{meta.get('eval_count')} tokens, {meta.get('done_reason')})", flush=True)
     return row, sol_file
 
 

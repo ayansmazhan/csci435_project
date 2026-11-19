@@ -1,0 +1,63 @@
+Certainly! Below is the complete Solidity contract `Escrow` that meets the specified requirements.
+
+```solidity
+pragma solidity ^0.8.24;
+
+contract Escrow {
+    address public buyer;
+    address public seller;
+    address public arbiter;
+    bool public settled;
+
+    constructor(address seller_, address arbiter_) payable {
+        require(msg.value > 0, "Escrow requires a non-zero amount of ETH");
+        require(seller_ != address(0), "Seller address cannot be zero");
+        require(arbiter_ != address(0), "Arbiter address cannot be zero");
+
+        buyer = msg.sender;
+        seller = seller_;
+        arbiter = arbiter_;
+        settled = false;
+    }
+
+    function buyer() external view returns (address) {
+        return buyer;
+    }
+
+    function seller() external view returns (address) {
+        return seller;
+    }
+
+    function arbiter() external view returns (address) {
+        return arbiter;
+    }
+
+    function settled() external view returns (bool) {
+        return settled;
+    }
+
+    function release() external {
+        require(settled == false, "Escrow is already settled");
+        require(msg.sender == buyer || msg.sender == arbiter, "Only buyer or arbiter can release");
+
+        payable(seller).transfer(address(this).balance);
+        settled = true;
+    }
+
+    function refund() external {
+        require(settled == false, "Escrow is already settled");
+        require(msg.sender == seller || msg.sender == arbiter, "Only seller or arbiter can refund");
+
+        payable(buyer).transfer(address(this).balance);
+        settled = true;
+    }
+}
+```
+
+### Explanation:
+- **Constructor**: The constructor initializes the contract with the buyer, seller, and arbiter addresses. It also checks that the sender (deployer) sent a non-zero amount of ETH. If not, it reverts.
+- **Buyer, Seller, Arbiter**: These functions return the respective addresses of the buyer, seller, and arbiter.
+- **Settled**: This function returns whether the escrow has been settled or not.
+- **Release**: This function allows the buyer or arbiter to release the escrowed amount to the seller. It checks if the escrow is not settled and if the caller is either the buyer or the arbiter. It then transfers the balance to the seller and marks the escrow as settled.
+- **Refund**: This function allows the seller or arbiter to refund the escrowed amount to the buyer. It checks if the escrow is not settled and if the caller is either the seller or the arbiter. It then transfers the balance to the buyer and marks the escrow as settled.
+- **No ETH After Deployment**: The contract does not accept any ETH after deployment. A plain ETH transfer to it must revert.

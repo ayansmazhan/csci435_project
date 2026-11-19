@@ -1,0 +1,57 @@
+pragma solidity ^0.8.24;
+
+contract Escrow {
+    address public buyer;
+    address public seller;
+    address public arbiter;
+    bool public settled;
+    uint256 public escrowAmount;
+
+    constructor(address seller_, address arbiter_) payable {
+        if (msg.value == 0 || seller_ == address(0) || arbiter_ == address(0)) {
+            revert();
+        }
+        buyer = msg.sender;
+        seller = seller_;
+        arbiter = arbiter_;
+        escrowAmount = msg.value;
+    }
+
+    function buyer() external view returns (address) {
+        return buyer;
+    }
+
+    function seller() external view returns (address) {
+        return seller;
+    }
+
+    function arbiter() external view returns (address) {
+        return arbiter;
+    }
+
+    function settled() external view returns (bool) {
+        return settled;
+    }
+
+    function release() external {
+        if (!settled && (msg.sender == buyer || msg.sender == arbiter)) {
+            payable(seller).transfer(escrowAmount);
+            settled = true;
+        } else {
+            revert();
+        }
+    }
+
+    function refund() external {
+        if (!settled && (msg.sender == seller || msg.sender == arbiter)) {
+            payable(buyer).transfer(escrowAmount);
+            settled = true;
+        } else {
+            revert();
+        }
+    }
+
+    receive() external payable {
+        revert();
+    }
+}

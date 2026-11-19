@@ -1,0 +1,94 @@
+pragma solidity ^0.8.24;
+
+contract MultiSig {
+    // Array of owners
+    address[] private owners;
+    // Mapping to track the confirmation status of each transaction
+    mapping(uint256 => mapping(address => bool)) private confirmations;
+
+    // Constructor to initialize the contract with three owners
+    constructor(address owner1, address owner2, address owner3) {
+        require(owner1 != address(0), "Owner 1 cannot be zero address");
+        require(owner2 != address(0), "Owner 2 cannot be zero address");
+        require(owner3 != address(0), "Owner 3 cannot be zero address");
+        require(owner1 != owner2, "Owner 1 and owner 2 cannot be the same address");
+        require(owner1 != owner3, "Owner 1 and owner 3 cannot be the same address");
+        require(owner2 != owner3, "Owner 2 and owner 3 cannot be the same address");
+
+        owners = [owner1, owner2, owner3];
+    }
+
+    // Function to check if a given address is an owner
+    function isOwner(address account) external view returns (bool) {
+        for (uint256 i = 0; i < owners.length; i++) {
+            if (owners[i] == account) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Function to get the total number of transactions submitted
+    function transactionCount() external view returns (uint256) {
+        return confirmations.length;
+    }
+
+    // Function to submit a new transaction
+    function submit(address to, uint256 value) external onlyOwner returns (uint256 txId) {
+        txId = confirmations.length;
+        confirmations[txId][msg.sender] = true;
+        emit TransactionSubmitted(txId, to, value);
+        return txId;
+    }
+
+    // Function to confirm a transaction
+    function confirm(uint256 txId) external onlyOwner {
+        require(owners.length > 2, "At least three owners are required for transaction execution");
+        require(txId < confirmations.length, "Transaction does not exist");
+        require(confirmations[txId][msg.sender], "Already confirmed by this owner");
+        confirmations[txId][msg.sender] = false;
+        emit TransactionConfirmed(txId, msg.sender);
+    }
+
+    // Function to execute a transaction
+    function execute(uint256 txId) external onlyOwner {
+        require(owners.length > 2, "At least three owners are required for transaction execution");
+        require(txId < confirmations.length, "Transaction does not exist");
+        require(!confirmations[txId][msg.sender], "Already executed by this owner");
+        require(confirmations[txId][owners[0]] && confirmations[txId][owners[1]], "Not enough confirmations from other owners");
+        confirmations[txId][msg.sender] = false;
+        require(address(this).balance >= value, "Insufficient balance");
+        (bool success, ) = payable(to).call{value: value}("");
+        require(success, "Failed to send Ether");
+        emit TransactionExecuted(txId);
+    }
+
+    // Function to check if a transaction has been confirmed by a specific owner
+    function isConfirmed(uint256 txId, address owner) external view returns (bool) {
+        return confirmations[txId][owner];
+    }
+
+    // Function to get details of a transaction
+    function getTransaction(uint256 txId) external view returns (address to, uint256 value, bool executed, uint256 numConfirmations) {
+        require(txId < confirmations.length, "Transaction does not exist");
+        to = confirmations[txId][owners[0]] ? owners[0] : confirmations[txId][owners[1]] ? owners[1] : confirmations[txId][owners[2]];
+        value = address(this).balance;
+        executed = confirmations[txId][owners[0]] && confirmations[txId][owners[1]] && confirmations[txId][owners[2]];
+        numConfirmations = confirmations[txId].length - (confirmations[txId][owners[0]] ? 1 : 0) - (confirmations[txId][owners[1]] ? 1 : 0) - (confirmations[txId][owners[2]] ? 1 : 0);
+    }
+
+    // Event for transaction submission
+    event TransactionSubmitted(uint256 txId, address to, uint256 value);
+
+    // Event for transaction confirmation
+    event TransactionConfirmed(uint256 txId, address owner);
+
+    // Event for transaction execution
+    event TransactionExecuted(uint256 txId);
+
+    // Modifier to require the caller to be an owner
+    modifier onlyOwner() {
+        require(isOwner(msg.sender), "Only owner can call this function");
+        _;
+    }
+}

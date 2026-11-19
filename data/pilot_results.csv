@@ -7,3 +7,12 @@ timestamp,spec,model,seed,temperature,round,gen_seconds,compiles,compile_error,t
 2026-11-18T13:00:07,06_crowdfunding,reference,,,0.0,True,,True,16,16,True,0,0,3,2,low-level-calls;timestamp,reference/Crowdfunding.sol
 2026-11-18T13:10:10,07_timelock,reference,,,0.0,True,,True,11,11,True,0,0,2,1,low-level-calls;timestamp,reference/TimeLock.sol
 2026-11-18T13:14:59,08_multisig,reference,,,0.0,True,,True,17,17,True,0,0,0,1,low-level-calls,reference/MultiSig.sol
+2026-11-18T13:15:28,01_piggybank,reference,,,0.0,True,,True,5,5,True,0,0,0,1,low-level-calls,reference/PiggyBank.sol
+2026-11-18T13:15:30,02_token,reference,,,0.0,True,,True,12,12,True,0,0,0,0,immutable-states,reference/SimpleToken.sol
+2026-11-18T13:15:31,03_escrow,reference,,,0.0,True,,True,15,15,True,0,0,0,2,low-level-calls,reference/Escrow.sol
+2026-11-18T13:15:33,04_voting,reference,,,0.0,True,,True,14,14,True,0,0,0,0,cache-array-length,reference/Voting.sol
+2026-11-18T13:15:34,05_auction,reference,,,0.0,True,,True,16,16,True,0,0,2,2,low-level-calls;timestamp,reference/Auction.sol
+2026-11-18T13:15:36,06_crowdfunding,reference,,,0.0,True,,True,16,16,True,0,0,3,2,low-level-calls;timestamp,reference/Crowdfunding.sol
+2026-11-18T13:15:37,07_timelock,reference,,,0.0,True,,True,11,11,True,0,0,2,1,low-level-calls;timestamp,reference/TimeLock.sol
+2026-11-18T13:15:39,08_multisig,reference,,,0.0,True,,True,17,17,True,0,0,0,1,low-level-calls,reference/MultiSig.sol
+2026-11-18T14:48:13,01_piggybank,qwen2.5-coder:7b,9,0.7,138.4,True,,True,5,5,True,0,0,0,1,reentrancy-unlimited-gas,data/generated/qwen2.5-coder_7b/01_piggybank/seed9.sol

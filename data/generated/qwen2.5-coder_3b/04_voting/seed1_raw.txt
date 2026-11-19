@@ -1,0 +1,64 @@
+Certainly! Below is the complete Solidity contract `Voting` that implements the specified requirements.
+
+```solidity
+pragma solidity ^0.8.24;
+
+contract Voting {
+    address public chairperson;
+    mapping(address => bool) public voters;
+    uint256 public proposalCount;
+    mapping(uint256 => uint256) public voteCounts;
+
+    constructor(uint256 numProposals) {
+        if (numProposals == 0) revert("Number of proposals must be greater than 0.");
+        chairperson = msg.sender;
+        proposalCount = numProposals;
+    }
+
+    function chairperson() external view returns (address) {
+        return chairperson;
+    }
+
+    function giveRightToVote(address voter) external {
+        require(msg.sender == chairperson, "Only the chairperson can give right to vote.");
+        require(!voters[voter], "Voter has already been given right to vote.");
+        voters[voter] = true;
+    }
+
+    function vote(uint256 proposal) external {
+        require(voters[msg.sender], "Caller does not have right to vote.");
+        require(!hasVoted(msg.sender), "Voter has already voted.");
+        require(proposal < proposalCount, "Proposal number out of range.");
+        voteCounts[proposal]++;
+    }
+
+    function voteCount(uint256 proposal) external view returns (uint256) {
+        return voteCounts[proposal];
+    }
+
+    function hasVoted(address voter) external view returns (bool) {
+        return voters[voter];
+    }
+
+    function winningProposal() external view returns (uint256) {
+        uint256 winningVoteCount = 0;
+        uint256 winningProposal = 0;
+        for (uint256 i = 0; i < proposalCount; i++) {
+            if (voteCounts[i] > winningVoteCount) {
+                winningVoteCount = voteCounts[i];
+                winningProposal = i;
+            }
+        }
+        return winningProposal;
+    }
+}
+```
+
+### Explanation:
+- **`constructor(uint256 numProposals)`**: Initializes the contract with the number of proposals. It checks if `numProposals` is greater than 0 and reverts if not.
+- **`chairperson()`**: Returns the address of the chairperson.
+- **`giveRightToVote(address voter)`**: Grants the right to vote to the specified address. It requires the caller to be the chairperson and checks if the voter is already given the right to vote.
+- **`vote(uint256 proposal)`**: Allows a voter to cast a vote for a specific proposal. It checks if the voter has the right to vote, has already voted, and if the proposal number is valid.
+- **`voteCount(uint256 proposal)`**: Returns the number of votes for the specified proposal.
+- **`hasVoted(address voter)`**: Returns whether the specified address has voted.
+- **`winningProposal()`**: Determines the winning proposal based on the highest number of votes. If there is a tie, it returns the proposal with the lowest number. If no one has voted, it returns 0.

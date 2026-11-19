@@ -1,0 +1,56 @@
+```solidity
+pragma solidity ^0.8.24;
+
+contract Voting {
+    address public chairperson;
+    uint256 public numProposals;
+    mapping(address => bool) public voters;
+    mapping(uint256 => uint256) public voteCounts;
+
+    constructor(uint256 _numProposals) {
+        require(_numProposals > 0, "Number of proposals must be greater than zero");
+        chairperson = msg.sender;
+        numProposals = _numProposals;
+    }
+
+    function chairperson() external view returns (address) {
+        return chairperson;
+    }
+
+    function giveRightToVote(address voter) external {
+        require(msg.sender == chairperson, "Only the chairperson can give right to vote");
+        require(!voters[voter], "Voter already has the right to vote");
+        voters[voter] = true;
+    }
+
+    function vote(uint256 proposal) external {
+        require(msg.sender != chairperson, "Chairperson cannot vote");
+        require(voters[msg.sender], "Caller does not have the right to vote");
+        require(voteCounts[proposal] == 0, "Proposal has already been voted for");
+        require(proposal < numProposals, "Invalid proposal number");
+        voteCounts[proposal]++;
+    }
+
+    function voteCount(uint256 proposal) external view returns (uint256) {
+        return voteCounts[proposal];
+    }
+
+    function hasVoted(address voter) external view returns (bool) {
+        return voters[voter];
+    }
+
+    function winningProposal() external view returns (uint256) {
+        uint256 winningVoteCount = 0;
+        uint256 winningProposalIndex = 0;
+
+        for (uint256 i = 0; i < numProposals; i++) {
+            if (voteCounts[i] > winningVoteCount) {
+                winningVoteCount = voteCounts[i];
+                winningProposalIndex = i;
+            }
+        }
+
+        return winningProposalIndex;
+    }
+}
+```

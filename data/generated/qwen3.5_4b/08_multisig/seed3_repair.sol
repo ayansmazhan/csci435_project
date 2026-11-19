@@ -1,0 +1,147 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract MultiSig {
+    address public owner1;
+    address public owner2;
+    address public owner3;
+    
+    struct Transaction {
+        address to;
+        uint256 value;
+        bool executed;
+        bool confirmedByOwner1;
+        bool confirmedByOwner2;
+        bool confirmedByOwner3;
+    }
+
+    mapping(uint256 => Transaction) internal transactions;
+    uint256 private nextTxId;
+    
+    event TransactionSubmitted(uint256 indexed txId, address indexed from, address indexed to, uint256 value);
+    event TransactionConfirmed(uint256 indexed txId, address indexed owner);
+    event TransactionExecuted(uint256 indexed txId, address to, uint256 value);
+
+    constructor(address _owner1, address _owner2, address _owner3) {
+        require(_owner1 != address(0), "Owner1 cannot be zero address");
+        require(_owner2 != address(0), "Owner2 cannot be zero address");
+        require(_owner3 != address(0), "Owner3 cannot be zero address");
+        require(_owner1 != _owner2, "Owner1 and Owner2 cannot be the same");
+        require(_owner1 != _owner3, "Owner1 and Owner3 cannot be the same");
+        require(_owner2 != _owner3, "Owner2 and Owner3 cannot be the same");
+
+        owner1 = _owner1;
+        owner2 = _owner2;
+        owner3 = _owner3;
+    }
+
+    function isOwner(address account) external view returns (bool) {
+        return account == owner1 || account == owner2 || account == owner3;
+    }
+
+    function transactionCount() external view returns (uint256) {
+        return nextTxId;
+    }
+
+    receive() external payable {
+        // The spec says "The contract accepts plain ETH transfers from anyone", so we allow it.
+    }
+
+    function submit(address _to, uint256 _value) external returns (uint256 txId) {
+        require(isOwner(msg.sender), "Caller is not an owner");
+        
+        txId = nextTxId++;
+        
+        transactions[txId] = Transaction({
+            to: _to,
+            value: _value,
+            executed: false,
+            confirmedByOwner1: false,
+            confirmedByOwner2: false,
+            confirmedByOwner3: false
+        });
+
+        emit TransactionSubmitted(txId, msg.sender, _to, _value);
+    }
+
+    function confirm(uint256 txId) external {
+        require(isOwner(msg.sender), "Caller is not an owner");
+        
+        address owner = msg.sender;
+        
+        // Check if transaction exists
+        require(txId < nextTxId, "Transaction does not exist");
+        
+        Transaction storage t = transactions[txId];
+        
+        // Prevent double confirmation by the same owner for this tx
+        require(!t.confirmedByOwner1 || owner != owner1, "Already confirmed by this owner");
+        require(!t.confirmedByOwner2 || owner != owner2, "Already confirmed by this owner");
+        require(!t.confirmedByOwner3 || owner != owner3, "Already confirmed by this owner");
+
+        if (owner == owner1) {
+            t.confirmedByOwner1 = true;
+        } else if (owner == owner2) {
+            t.confirmedByOwner2 = true;
+        } else {
+            t.confirmedByOwner3 = true;
+        }
+
+        emit TransactionConfirmed(txId, msg.sender);
+    }
+
+    function execute(uint256 txId) external {
+        require(isOwner(msg.sender), "Caller is not an owner");
+        
+        address owner = msg.sender;
+        
+        // Check if transaction exists
+        require(txId < nextTxId, "Transaction does not exist");
+        
+        Transaction storage t = transactions[txId];
+        
+        // Prevent execution if already executed
+        require(!t.executed, "Transaction already executed");
+        
+        // Check if at least 2 different owners have confirmed it
+        uint256 confirmations = (t.confirmedByOwner1 ? 1 : 0) + 
+                                 (t.confirmedByOwner2 ? 1 : 0) + 
+                                 (t.confirmedByOwner3 ? 1 : 0);
+        
+        require(confirmations >= 2, "Insufficient confirmations");
+
+        t.executed = true;
+        
+        // Send the funds
+        (bool success,) = t.to.call{value: t.value}("");
+        require(success, "Transfer failed");
+        
+        emit TransactionExecuted(txId, t.to, t.value);
+    }
+
+    function isConfirmed(uint256 txId, address owner) external view returns (bool) {
+        require(txId < nextTxId, "Transaction does not exist");
+        
+        Transaction storage t = transactions[txId];
+        
+        if (owner == owner1) return t.confirmedByOwner1;
+        else if (owner == owner2) return t.confirmedByOwner2;
+        else if (owner == owner3) return t.confirmedByOwner3;
+        else return false; // Owner not in the contract
+    }
+
+    function getTransaction(uint256 txId) external view returns (address to, uint256 value, bool executed, uint256 numConfirmations) {
+        require(txId < nextTxId, "Transaction does not exist");
+        
+        Transaction storage t = transactions[txId];
+        
+        to = t.to;
+        value = t.value;
+        executed = t.executed;
+        
+        // Count total confirmations regardless of who called this function
+        numConfirmations = (t.confirmedByOwner1 ? 1 : 0) + 
+                           (t.confirmedByOwner2 ? 1 : 0) + 
+                           (t.confirmedByOwner3 ? 1 : 0);
+    }
+}

@@ -1,0 +1,95 @@
+Certainly! Below is the complete Solidity contract `Crowdfunding` that implements the specified requirements.
+
+```solidity
+pragma solidity ^0.8.24;
+
+contract Crowdfunding {
+    address public creator;
+    uint256 public goal;
+    uint256 public deadline;
+    uint256 public totalRaised;
+    mapping(address => uint256) public contributions;
+    bool public claimed;
+
+    constructor(uint256 goal_, uint256 duration) {
+        require(goal_ > 0, "Goal must be greater than 0");
+        creator = msg.sender;
+        deadline = block.timestamp + duration;
+        goal = goal_;
+    }
+
+    function creator() external view returns (address) {
+        return creator;
+    }
+
+    function goal() external view returns (uint256) {
+        return goal;
+    }
+
+    function deadline() external view returns (uint256) {
+        return deadline;
+    }
+
+    function totalRaised() external view returns (uint256) {
+        return totalRaised;
+    }
+
+    function contributions(address contributor) external view returns (uint256) {
+        return contributions[contributor];
+    }
+
+    function claimed() external view returns (bool) {
+        return claimed;
+    }
+
+    function contribute() external payable {
+        require(msg.value > 0, "Contribution must be greater than 0");
+        require(block.timestamp < deadline, "Deadline has passed");
+        contributions[msg.sender] += msg.value;
+        totalRaised += msg.value;
+    }
+
+    function claim() external {
+        require(msg.sender == creator, "Only the creator can claim");
+        require(block.timestamp >= deadline, "Deadline has not passed");
+        require(totalRaised >= goal, "Goal not reached");
+        require(!claimed, "Already claimed");
+        creator.transfer(totalRaised);
+        claimed = true;
+    }
+
+    function refund() external {
+        require(block.timestamp >= deadline, "Deadline has not passed");
+        require(totalRaised < goal, "Goal reached");
+        require(contributions[msg.sender] > 0, "No contribution to refund");
+        uint256 amount = contributions[msg.sender];
+        contributions[msg.sender] = 0;
+        payable(msg.sender).transfer(amount);
+    }
+}
+```
+
+### Explanation:
+- **State Variables**: 
+  - `creator`: The address of the contract creator.
+  - `goal`: The target amount of ETH to raise.
+  - `deadline`: The timestamp when the campaign ends.
+  - `totalRaised`: The total amount of ETH raised so far.
+  - `contributions`: A mapping from each contributor's address to their contribution amount.
+  - `claimed`: A boolean flag indicating whether the campaign has been claimed.
+
+- **Constructor**: 
+  - Sets the creator, deadline, and goal. The goal must be greater than 0.
+
+- **Functions**:
+  - `creator()`: Returns the address of the creator.
+  - `goal()`: Returns the target goal.
+  - `deadline()`: Returns the deadline timestamp.
+  - `totalRaised()`: Returns the total amount raised.
+  - `contributions(address contributor)`: Returns the contribution amount for a specific contributor.
+  - `claimed()`: Returns whether the campaign has been claimed.
+  - `contribute()`: Adds the user's contribution to the total raised amount.
+  - `claim()`: Transfers the total raised amount to the creator if the goal is reached and the deadline has passed.
+  - `refund()`: Refunds a contributor's contribution if the goal is not reached and they have a contribution to refund.
+
+This contract ensures that the crowdfunding campaign operates according to the specified requirements.

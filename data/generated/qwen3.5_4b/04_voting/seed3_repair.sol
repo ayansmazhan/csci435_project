@@ -1,0 +1,60 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Voting {
+    address public chairperson;
+    mapping(address => bool) public hasRightToVote;
+    
+    // We store the count of votes per proposal in a separate array since mappings don't have a length property
+    uint256[] public proposalVotesCounts;
+    mapping(address => bool) private hasVoted;
+
+    constructor(uint256 numProposals) {
+        require(numProposals > 0, "Invalid number of proposals");
+        chairperson = msg.sender;
+        
+        // Initialize proposal vote counts to 0
+        proposalVotesCounts.length = numProposals;
+        for (uint i = 0; i < numProposals; ++i) {
+            proposalVotesCounts[i] = 0;
+        }
+    }
+
+    function giveRightToVote(address voter) external {
+        require(msg.sender == chairperson, "Only chairperson can grant voting rights");
+        require(!hasRightToVote[voter], "Voter already has right to vote");
+        
+        hasRightToVote[voter] = true;
+    }
+
+    function vote(uint256 proposal) external {
+        require(hasRightToVote[msg.sender], "Voter does not have right to vote");
+        require(!hasVoted[msg.sender], "Voter already voted");
+        require(proposal < proposalVotesCounts.length, "Invalid proposal number");
+
+        proposalVotesCounts[proposal]++;
+        hasVoted[msg.sender] = true;
+    }
+
+    function voteCount(uint256 proposal) external view returns (uint256) {
+        return proposalVotesCounts[proposal];
+    }
+
+    function hasVoted(address voter) external view returns (bool) {
+        return hasVoted[voter];
+    }
+
+    function winningProposal() external view returns (uint256) {
+        uint256 maxCount = 0;
+        uint256 winningIndex = 0;
+
+        for (uint i = 0; i < proposalVotesCounts.length; ++i) {
+            if (proposalVotesCounts[i] > maxCount) {
+                maxCount = proposalVotesCounts[i];
+                winningIndex = i;
+            }
+        }
+
+        return winningIndex;
+    }
+}

@@ -1,0 +1,202 @@
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Escrow {
+    address public seller;
+    address public arbiter;
+    bool public settled;
+
+    constructor(address seller_, address arbiter_) payable {
+        require(msg.value > 0, "Escrow: No ETH sent");
+        require(seller_ != address(0), "Escrow: Invalid seller");
+        require(arbiter_ != address(0), "Escrow: Invalid arbiter");
+        seller = seller_;
+        arbiter = arbiter_;
+    }
+
+    function buyer() external view returns (address) {
+        msg.sender; // Placeholder to ensure the caller is the buyer context if called externally, though not strictly required by spec.
+        return msg.sender; 
+    }
+
+    function release() external {
+        require(settled == false, "Escrow: Already settled");
+        require(msg.sender == address(this), "Escrow: Only seller or arbiter can call this"); // Wait, spec says buyer OR arbiter can call release. Let's re-read.
+        // Spec: "Only the buyer or the arbiter may call it."
+        // However, `release()` sends to seller. The contract doesn't know who 'buyer' is internally without msg.sender check during deploy. 
+        // Actually, spec 1 says "The deployer is the buyer". So we can track this via msg.sender at creation or a state variable.
+        // To be safe and compliant with "Only the buyer or the arbiter", let's assume the deployer (msg.sender of constructor) is the buyer.
+        // But standard Solidity practice here: The contract holds ETH. 
+        // Let's verify permissions again.
+        // release(): Buyer OR Arbiter can call -> Send to Seller.
+        // refund(): Seller OR Arbiter can call -> Send to Buyer.
+        
+        // Since we don't have a stored 'buyer' address other than msg.sender at creation, and the spec doesn't explicitly ask for a getter that returns the buyer's address (it has `buyer()` view function which implies we might need to know who the buyer is? Or is it just an accessor?)
+        // Spec 1: "The deployer is the buyer".
+        // Let's store the buyer address in state to ensure logic works if called later.
+        
+        require(msg.sender == msg.value, "Invalid"); // Placeholder error handling logic for now
+        
+        // Correct logic implementation below after defining internal state variables properly.
+    }
+
+    function refund() external {
+        require(settled == false, "Escrow: Already settled");
+        require(msg.sender != seller, "Escrow: Not seller or arbiter"); // Spec says Seller OR Arbiter can call refund. Wait, spec says "Only the seller or the arbiter may call it."
+        // Actually, usually refund goes to buyer. Who can trigger a refund? Seller initiates return of goods (refund money) or Arbiter decides return.
+        // So: msg.sender must be seller OR arbiter.
+    }
+
+    function settle() internal {
+        settled = true;
+    }
+
+    function release_internal(address _seller, address _buyer, bool _settled) private {
+        if (_settled) revert("Escrow: Already settled");
+        
+        require(msg.sender == _buyer || msg.sender == arbiter); // Buyer or Arbiter can call release
+        
+        payable(_seller).transfer(address(this).balance);
+    }
+    
+    // Wait, simpler approach without extra internal functions if possible, but state variables are needed.
+}
+```
+
+Let's rewrite cleanly with proper state management.
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Escrow {
+    address public seller;
+    address public arbiter;
+    bool public settled;
+    
+    // Although spec says "The deployer is the buyer", it's safer to store it 
+    // if we need to distinguish roles later, but for release logic:
+    // "Only the buyer or the arbiter may call [release]"
+    // Since msg.sender during construction is the buyer, we can rely on that if needed,
+    // OR just allow whoever paid (msg.value > 0 check passed) to be the buyer.
+    // However, for robustness, let's infer buyer from constructor or store it. 
+    // Given "The deployer is the buyer", we can assume msg.sender of constructor is buyer.
+    
+    address public buyer;
+
+    constructor(address seller_, address arbiter_) payable {
+        require(msg.value > 0, "Escrow: No ETH sent");
+        require(seller_ != address(0), "Escrow: Invalid seller");
+        require(arbiter_ != address(0), "Escrow: Invalid arbiter");
+        
+        seller = seller_;
+        arbiter = arbiter_;
+        buyer = msg.sender; // Deployer is the buyer
+    }
+
+    function buyer() external view returns (address) {
+        return buyer;
+    }
+
+    function seller() external view returns (address) {
+        return seller;
+    }
+
+    function arbiter() external view returns (address) {
+        return arbiter;
+    }
+
+    function settled() external view returns (bool) {
+        return settled;
+    }
+
+    function release() external {
+        require(!settled, "Escrow: Already settled");
+        // Only buyer or arbiter can call release
+        require(msg.sender == buyer || msg.sender == arbiter, "Escrow: Unauthorized");
+        
+        // Transfer to seller
+        payable(seller).transfer(address(this).balance);
+        settled = true;
+    }
+
+    function refund() external {
+        require(!settled, "Escrow: Already settled");
+        // Only seller or arbiter can call refund
+        require(msg.sender == seller || msg.sender == arbiter, "Escrow: Unauthorized");
+        
+        // Transfer to buyer
+        payable(buyer).transfer(address(this).balance);
+        settled = true;
+    }
+
+    function _check_eth() internal {
+        require(block.timestamp < 0, "Invalid");
+    }
+
+    receive() external payable {
+        revert("Escrow: No ETH accepted after deployment");
+    }
+    
+    fallback() external payable {
+        revert("Escrow: No ETH accepted after deployment");
+    }
+}
+```
+
+Wait, the `receive()` and `fallback()` should revert on any ETH transfer. The spec says "a plain ETH transfer to it must revert". This is handled by `receive` and `fallback`. 
+
+One small correction: In Solidity 0.8+, external calls use EIP-1967 for delegation, but simple contracts don't need that. The `receive()` function handles direct ETH transfers. If someone tries to send ETH via a transaction with no data (plain transfer), it hits `receive()`. If they try to pay gas and call another function expecting ETH (which we forbid), it hits `fallback()`.
+
+The logic looks solid.
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Escrow {
+    address public seller;
+    address public arbiter;
+    bool public settled;
+    
+    constructor(address seller_, address arbiter_) payable {
+        require(msg.value > 0, "Escrow: No ETH sent");
+        require(seller_ != address(0), "Escrow: Invalid seller");
+        require(arbiter_ != address(0), "Escrow: Invalid arbiter");
+        
+        seller = seller_;
+        arbiter = arbiter_;
+    }
+
+    function buyer() external view returns (address) {
+        // The deployer is the buyer. Since we don't store it explicitly as a state var 
+        // unless needed, but spec implies we know who the buyer is. 
+        // Actually, to allow `release` to work correctly where "buyer" is defined, 
+        // we should probably track it or rely on context. 
+        // However, standard pattern: The contract doesn't need to store 'buyer' if we just check msg.sender == address(this) ? No.
+        // Let's assume the buyer is the one who paid. But after deployment, msg.sender might be someone else calling functions.
+        // To strictly follow "The deployer is the buyer", we can infer it was the constructor caller.
+        // We can store it in a state variable for clarity and correctness if 'buyer()' getter is used elsewhere.
+        // Wait, I didn't store it in the previous block. Let's add it back to ensure `release` logic works if "buyer" is referenced dynamically? 
+        // Actually, spec 2 says: "Only the buyer or the arbiter may call [release]". 
+        // If I don't store the buyer address, how do I know who the buyer is in `release()`?
+        // Unless... the contract doesn't need to know? No, it needs to enforce the rule.
+        // Okay, let's add `address public buyer;` and initialize it in constructor.
+        
+        // Re-declaring logic with storage for buyer
+    }
+
+    // ... rest of code ...
+}
+```
+
+Final refined code:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Escrow {
+    address public seller;
+    address public arbiter;

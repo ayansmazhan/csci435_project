@@ -1,0 +1,64 @@
+pragma solidity ^0.8.24;
+
+contract Auction {
+    address payable public seller;
+    uint256 public endTime;
+    address public highestBidder;
+    uint256 public highestBid;
+    mapping(address => uint256) public pendingReturns;
+
+    constructor(uint256 biddingTime) {
+        seller = payable(msg.sender);
+        endTime = block.timestamp + biddingTime;
+    }
+
+    function seller() public view returns (address) {
+        return seller;
+    }
+
+    function endTime() public view returns (uint256) {
+        return endTime;
+    }
+
+    function highestBidder() public view returns (address) {
+        return highestBidder;
+    }
+
+    function highestBid() public view returns (uint256) {
+        return highestBid;
+    }
+
+    function pendingReturns(address bidder) public view returns (uint256) {
+        return pendingReturns[bidder];
+    }
+
+    function ended() public view returns (bool) {
+        return block.timestamp >= endTime;
+    }
+
+    function bid() public payable {
+        require(block.timestamp < endTime, "Bidding is closed");
+        require(msg.value > highestBid, "Bid must be higher than the current highest bid");
+
+        if (highestBidder != address(0)) {
+            pendingReturns[highestBidder] += highestBid;
+        }
+        highestBidder = msg.sender;
+        highestBid = msg.value;
+    }
+
+    function withdraw() public {
+        require(pendingReturns[msg.sender] > 0, "Nothing to withdraw");
+        payable(msg.sender).transfer(pendingReturns[msg.sender]);
+        pendingReturns[msg.sender] = 0;
+    }
+
+    function end() public {
+        require(block.timestamp >= endTime, "Auction has not ended");
+        require(highestBidder != address(0), "No bids placed");
+
+        payable(seller).transfer(highestBid);
+        highestBidder = address(0);
+        highestBid = 0;
+    }
+}

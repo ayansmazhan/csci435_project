@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract Voting {
+    uint256 public numProposals;
+    address public chairperson;
+    mapping(address => bool) private rightsToVote;
+    mapping(address => bool) private votedFor;
+    mapping(uint256 => uint256) private proposalCounts;
+
+    constructor(uint256 numProposals_) {
+        require(numProposals_ > 0, "Invalid number of proposals");
+        numProposals = numProposals_;
+        chairperson = msg.sender;
+        proposalCounts[0] = 1; // Initial vote for proposal 0 by the chairperson? NO - Spec says chairperson does NOT automatically have right.
+        // Re-reading spec: "The deployer is the chairperson."
+        // "proposalCounts" initialized to 0.
+    }
+
+    function giveRightToVote(address voter_) external {
+        require(msg.sender == chairperson, "Only chairperson can grant voting rights");
+        require(!rightsToVote[voter_], "Voter already has right to vote");
+        rightsToVote[voter_] = true;
+    }
+
+    function vote(uint256 proposal_) external {
+        require(proposal_ >= 0 && proposal_ < numProposals, "Invalid proposal number");
+        require(rightsToVote[msg.sender], "No right to vote");
+        require(!votedFor[msg.sender], "Already voted");
+
+        proposalCounts[proposal_]++;
+        votedFor[msg.sender] = true;
+    }
+
+    function voteCount(uint256 proposal_) external view returns (uint256) {
+        return proposalCounts[proposal_];
+    }
+
+    function hasVoted(address voter_) external view returns (bool) {
+        return votedFor[voter_];
+    }
+
+    function winningProposal() external view returns (uint256) {
+        uint256 highestVotes = 0;
+        uint256 winningIndex = 0;
+
+        for (uint256 i = 0; i < numProposals; ++i) {
+            if (proposalCounts[i] > highestVotes) {
+                highestVotes = proposalCounts[i];
+                winningIndex = i;
+            }
+        }
+
+        return winningIndex;
+    }
+}

@@ -1,0 +1,50 @@
+Certainly! Below is the complete Solidity source code for the `PiggyBank` contract based on the specified requirements:
+
+```solidity
+pragma solidity ^0.8.24;
+
+contract PiggyBank {
+    mapping(address => uint256) private balances;
+
+    event Deposit(address indexed depositor, uint256 amount);
+    event Withdraw(address indexed withdrawer, uint256 amount);
+
+    function deposit() external payable {
+        require(msg.value > 0, "Deposit amount must be greater than 0");
+        balances[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value);
+    }
+
+    function withdraw(uint256 amount) external {
+        require(amount <= balances[msg.sender], "Insufficient balance");
+        balances[msg.sender] -= amount;
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Failed to send Ether");
+        emit Withdraw(msg.sender, amount);
+    }
+
+    function balanceOf(address user) external view returns (uint256) {
+        return balances[user];
+    }
+}
+```
+
+### Explanation:
+
+1. **Mapping**: The `balances` mapping is used to store the balance of each user. The key is the user's address, and the value is the amount of Ether stored in their account.
+
+2. **Events**: Two events, `Deposit` and `Withdraw`, are defined to log the transactions. These events provide visibility into the actions performed on the contract.
+
+3. **`deposit()` Function**:
+   - It checks if the `msg.value` is greater than 0.
+   - It updates the user's balance by adding `msg.value`.
+   - It emits a `Deposit` event to log the transaction.
+
+4. **`withdraw()` Function**:
+   - It checks if the requested withdrawal amount (`amount`) is less than or equal to the user's balance.
+   - It updates the user's balance by subtracting the `amount`.
+   - It sends the `amount` wei to the caller using the `call` function.
+   - It emits a `Withdraw` event to log the transaction.
+
+5. **`balanceOf()` Function**:
+   - It returns the balance of the specified user by reading the value from the `balances` mapping.

@@ -30,6 +30,7 @@ SPECS = {
 }                  # spec id -> contract name
 OLLAMA_URL = "http://localhost:11434/api/generate"
 TEMPERATURE = 0.7
+MAX_OUTPUT_TOKENS = 2048
 PILOT_CSV = ROOT / "data" / "pilot_results.csv"   # single runs from this script
 
 PROMPT_TEMPLATE = """You are a Solidity developer. Implement the following specification.
@@ -41,20 +42,25 @@ Return only the complete Solidity source code in a single ```solidity code block
 
 # ---------- step 1: ask the model ----------
 def generate(prompt, model, seed):
-    """Send a prompt to Ollama. Returns (full answer text, seconds taken)."""
+    """Send a prompt to Ollama.
+    Returns (answer text, seconds taken, Ollama's full reply as a dict).
+    In that dict, done_reason == "length" means the answer hit MAX_OUTPUT_TOKENS and was cut off."""
     body = {
         "model": model,
         "prompt": prompt,
         "stream": False,
         "keep_alive": "30m",
-        "options": {"temperature": TEMPERATURE, "seed": seed, "num_ctx": 4096},
+        # num_predict caps the answer length, so a model stuck repeating itself cannot run forever.
+        "options": {"temperature": TEMPERATURE, "seed": seed, "num_ctx": 4096,
+                    "num_predict": MAX_OUTPUT_TOKENS},
     }
     if model.startswith("qwen3"):            # "thinking" models: switch thinking off
         body["think"] = False
     start = time.time()
-    r = requests.post(OLLAMA_URL, json=body, timeout=1800)
+    r = requests.post(OLLAMA_URL, json=body, timeout=1200)
     r.raise_for_status()
-    return r.json()["response"], time.time() - start
+    data = r.json()
+    return data["response"], time.time() - start, data
 
 
 # ---------- step 2: pull the code out of the answer ----------
@@ -171,7 +177,7 @@ def main():
             ap.error("--model is required unless --reference is used")
         spec_text = (ROOT / "specs" / f"{args.spec}.md").read_text()
         print(f"Generating with {args.model} (seed {args.seed})... this can take a few minutes", flush=True)
-        response, seconds = generate(PROMPT_TEMPLATE.format(spec=spec_text), args.model, args.seed)
+        response, seconds, _ = generate(PROMPT_TEMPLATE.format(spec=spec_text), args.model, args.seed)
         out_dir = ROOT / "data" / "generated" / args.model.replace(":", "_") / args.spec
         out_dir.mkdir(parents=True, exist_ok=True)
         (out_dir / f"seed{args.seed}_raw.txt").write_text(response)   # keep the full answer

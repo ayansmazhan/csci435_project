@@ -1,0 +1,129 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract MultiSig {
+    struct Transaction {
+        address to;
+        uint256 value;
+        bool executed;
+        bytes32 confirmationsMask; // Bitmask to track which of the 3 owners confirmed this tx
+    }
+
+    address owner1;
+    address owner2;
+    address owner3;
+    mapping(address => bool) isOwner;
+    mapping(uint256 => Transaction) transactions;
+    uint256 transactionCount;
+
+    constructor(address _owner1, address _owner2, address _owner3) {
+        require(_owner1 != address(0), "Invalid owner 1");
+        require(_owner2 != address(0), "Invalid owner 2");
+        require(_owner3 != address(0), "Invalid owner 3");
+        require(_owner1 != _owner2, "Duplicate owners");
+        require(_owner1 != _owner3, "Duplicate owners");
+        require(_owner2 != _owner3, "Duplicate owners");
+
+        owner1 = _owner1;
+        owner2 = _owner2;
+        owner3 = _owner3;
+        isOwner[_owner1] = true;
+        isOwner[_owner2] = true;
+        isOwner[_owner3] = true;
+    }
+
+    receive() external payable {}
+
+    function isOwner(address account) external view returns (bool) {
+        return isOwner[account];
+    }
+
+    function transactionCount() external view returns (uint256) {
+        return transactionCount;
+    }
+
+    function submit(address to, uint256 value) external returns (uint256 txId) {
+        require(isOwner(msg.sender), "Not an owner");
+        
+        Transaction storage newTx = transactions[transactionCount];
+        newTx.to = to;
+        newTx.value = value;
+        newTx.executed = false;
+        newTx.confirmationsMask = 0; // No confirmations yet
+
+        transactionCount++;
+        
+        return transactionCount - 1;
+    }
+
+    function confirm(uint256 txId) external {
+        require(isOwner(msg.sender), "Not an owner");
+        Transaction storage tx = transactions[txId];
+        
+        require(txId < transactionCount, "Transaction does not exist");
+        require(!tx.executed, "Transaction already executed");
+
+        // Check if this owner has already confirmed this transaction by checking the bitmask
+        bool alreadyConfirmed = false;
+        // Map addresses to their corresponding bit (0, 1, or 2)
+        uint8 ownerBit = 0;
+        if (msg.sender == owner1) ownerBit = 1;
+        else if (msg.sender == owner2) ownerBit = 2;
+        else if (msg.sender == owner3) ownerBit = 4;
+
+        // Check if the bit is already set
+        if (tx.confirmationsMask & uint32(ownerBit) != 0) {
+            revert("Already confirmed by caller");
+        }
+
+        tx.confirmationsMask |= uint32(ownerBit);
+    }
+
+    function execute(uint256 txId) external {
+        require(isOwner(msg.sender), "Not an owner");
+        Transaction storage tx = transactions[txId];
+        
+        require(txId < transactionCount, "Transaction does not exist");
+        require(!tx.executed, "Transaction already executed");
+        require(tx.confirmationsMask != 0, "Insufficient confirmations (need at least 2)");
+
+        // Check if the sender is one of the two owners who confirmed this transaction? 
+        // No, the spec says "at least two DIFFERENT owners". It doesn't require the executor to be a confirmer.
+        // Just ensuring >= 2 confirmations is enough based on bitmask logic (values are 1, 2, or 4 -> min sum for 2 bits is 3).
+
+        tx.executed = true;
+        uint256 valueToSend = tx.value;
+        
+        require(address(this).balance >= valueToSend, "Insufficient contract balance");
+
+        (bool success,) = tx.to.call{value: valueToSend}("");
+        require(success, "Transaction execution failed");
+    }
+
+    function isConfirmed(uint256 txId, address owner) external view returns (bool) {
+        Transaction storage tx = transactions[txId];
+        require(txId < transactionCount, "Transaction does not exist");
+        
+        // Map the owner to their bit mask value
+        uint8 ownerBit = 0;
+        if (owner == owner1) ownerBit = 1;
+        else if (owner == owner2) ownerBit = 2;
+        else if (owner == owner3) ownerBit = 4;
+
+        // Check if this specific bit is set in the confirmations mask
+        return (tx.confirmationsMask & uint32(ownerBit)) != 0;
+    }
+
+    function getTransaction(uint256 txId) external view returns (address to, uint256 value, bool executed, uint256 numConfirmations) {
+        Transaction storage tx = transactions[txId];
+        require(txId < transactionCount, "Transaction does not exist");
+        
+        // Count how many bits are set in the mask
+        uint256 count = 0;
+        if (tx.confirmationsMask & 1 != 0) count++;
+        if (tx.confirmationsMask & 2 != 0) count++;
+        if (tx.confirmationsMask & 4 != 0) count++;
+
+        return (tx.to, tx.value, tx.executed, count);
+    }
+}

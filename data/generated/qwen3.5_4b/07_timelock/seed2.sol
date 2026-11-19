@@ -1,0 +1,71 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+contract TimeLock {
+    mapping(address => uint256) internal balances;
+    mapping(address => uint256) internal unlockTimes;
+
+    function deposit(uint256 lockDuration) external payable {
+        require(msg.value > 0, "Deposit must be greater than zero");
+
+        address user = msg.sender;
+
+        // Only update unlock time if the new time is later than the current one
+        uint256 proposedUnlockTime = block.timestamp + lockDuration;
+        if (proposedUnlockTime > unlockTimes[user]) {
+            unlockTimes[user] = proposedUnlockTime;
+        }
+
+        balances[user] += msg.value;
+    }
+
+    function increaseLockTime(uint256 extraSeconds) external {
+        require(balances[msg.sender] > 0, "No balance to increase lock time");
+        require(block.timestamp < unlockTimes[msg.sender], "Cannot extend past already set time");
+
+        address user = msg.sender;
+        // Ensure the new time is never earlier than the current unlock time
+        // Even if extraSeconds is extremely large, we must ensure it doesn't overflow
+        // Solidity's uint256 max is 2^256 - 1. block.timestamp + extraSeconds could theoretically overflow.
+        // However, since we are adding to an existing timestamp which is already in the future,
+        // and checking against current time, we need to be careful about overflow logic.
+        // To safely prevent making it earlier:
+        
+        // We can calculate the target time and ensure it's >= current unlock time.
+        // But since we are increasing, and we know current unlock time > block.timestamp (from withdraw check),
+        // the only risk is overflow if extraSeconds is huge.
+        // A safe approach: just add and then verify it didn't go back in time relative to current state?
+        // Actually, the spec says "never make the unlock time earlier". Since we are always adding positive seconds,
+        // mathematically time only increases. The only issue is uint256 overflow.
+        
+        // Let's compute safely: newUnlockTime = block.timestamp + extraSeconds;
+        // But wait, the lock time is stored as absolute timestamp from deposit.
+        // From increaseLockTime: we are adding to the CURRENT unlock time, not calculating from block.timestamp again.
+        // So: newUnlockTime = unlockTimes[msg.sender] + extraSeconds;
+        
+        // Check for overflow before adding:
+        require(unlockTimes[msg.sender] + extraSeconds < type(uint256).max, "Overflow in lock time");
+
+        unlockTimes[msg.sender] += extraSeconds;
+    }
+
+    function withdraw() external {
+        address user = msg.sender;
+
+        // Can only withdraw if not yet unlocked and has balance
+        require(block.timestamp >= unlockTimes[user], "Not yet unlocked");
+        require(balances[user] > 0, "No balance to withdraw");
+
+        balances[user] = 0;
+        (bool sent, ) = user.call{value: balances[user]}("");
+        require(sent, "Transfer failed");
+    }
+
+    function balanceOf(address user) external view returns (uint256) {
+        return balances[user];
+    }
+
+    function unlockTime(address user) external view returns (uint256) {
+        return unlockTimes[user];
+    }
+}

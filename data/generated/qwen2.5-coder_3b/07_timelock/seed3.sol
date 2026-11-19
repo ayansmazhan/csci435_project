@@ -1,0 +1,53 @@
+pragma solidity ^0.8.24;
+
+contract TimeLock {
+    mapping(address => uint256) private balances;
+    mapping(address => uint256) private unlockTimes;
+
+    event Deposit(address indexed user, uint256 amount, uint256 unlockTime);
+    event IncreaseLockTime(address indexed user, uint256 extraSeconds, uint256 newUnlockTime);
+    event Withdraw(address indexed user, uint256 amount);
+
+    function deposit(uint256 lockDuration) external payable {
+        require(msg.value > 0, "Deposit amount must be greater than 0");
+
+        uint256 newUnlockTime = block.timestamp + lockDuration;
+        if (unlockTimes[msg.sender] < newUnlockTime) {
+            unlockTimes[msg.sender] = newUnlockTime;
+        }
+
+        balances[msg.sender] += msg.value;
+        emit Deposit(msg.sender, msg.value, newUnlockTime);
+    }
+
+    function increaseLockTime(uint256 extraSeconds) external {
+        require(balances[msg.sender] > 0, "No balance to increase lock time");
+        require(extraSeconds > 0, "Extra seconds must be greater than 0");
+
+        uint256 newUnlockTime = unlockTimes[msg.sender] + extraSeconds;
+        if (unlockTimes[msg.sender] < newUnlockTime) {
+            unlockTimes[msg.sender] = newUnlockTime;
+        }
+
+        emit IncreaseLockTime(msg.sender, extraSeconds, newUnlockTime);
+    }
+
+    function withdraw() external {
+        require(block.timestamp >= unlockTimes[msg.sender], "Unlock time not reached");
+        require(balances[msg.sender] > 0, "No balance to withdraw");
+
+        uint256 balance = balances[msg.sender];
+        balances[msg.sender] = 0;
+        payable(msg.sender).transfer(balance);
+
+        emit Withdraw(msg.sender, balance);
+    }
+
+    function balanceOf(address user) external view returns (uint256) {
+        return balances[user];
+    }
+
+    function unlockTime(address user) external view returns (uint256) {
+        return unlockTimes[user];
+    }
+}
